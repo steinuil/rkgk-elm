@@ -1,0 +1,175 @@
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+body {
+  background-color: lightslategray;
+  
+  font-family: sans-serif;
+  font-size: 16px;
+}
+
+a {
+  display: inline-block;
+}
+
+.link {
+  cursor: pointer;
+  transition: transform .2s;
+}
+
+.link:hover {
+  transform: translateY(-4px);
+  transition: transform .2s;
+}
+
+p a {
+  text-decoration: none;
+}
+
+#error {
+  background-color: darkred;
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin: 24px;
+  display: inline-block;
+  padding: 10px 20px;
+  color: white;
+}
+
+#back {
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 24px;
+  padding: 6px 10px;
+
+  background-color: black;
+  color: white;
+  text-align: center;
+  vertical-align: center;
+  z-index: 5;
+  opacity: .6;
+}
+
+#page-info {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  opacity: .6;
+  margin: 24px;
+}
+
+#page-info .name {
+  padding: 6px 10px;
+  background-color: black;
+  color: white;
+}
+
+#page-info.artist {
+  display: flex;
+  align-items: center;
+}
+
+#page-info.artist .avatar {
+  max-width: 70px;
+  max-height: 70px;
+}
+
+#page-info.artist .name {
+  margin: auto 6px 0;
+}
+
+
+#list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#list > .thumbnail {
+  margin: 3px;
+  display: inline-block;
+  height: 360px;
+  width: 360px;
+
+  background-color: white;
+  position: relative;
+}
+
+#list .thumbnail img {
+  max-width: 360px;
+  max-height: 360px;
+  margin: auto;
+}
+
+#more {
+  width: 100%;
+  display: flex;
+}
+
+#more .cont {
+  margin: 16px auto;
+  display: inline-block;
+  background-color: #333;
+  color: white;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+#list .count {
+  z-index: 1;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  
+  margin: 6px;
+  
+  background-color: white;
+  color: white;
+  opacity: .5;
+  padding: 3px 5px 2px;
+}
+
+#detail {
+  padding: 16px;
+  min-height: 100vh;
+}
+
+#detail .picture {
+  width: 100%;
+  text-align: center;
+}
+
+#detail .picture img {
+  max-height: calc(100vh - 50px);
+  max-width: calc(100vw - 50px);
+  margin: 6px auto;
+}
+
+#detail-info {
+  background-color: whitesmoke;
+  color: #333;
+  z-index: 7;
+  position: relative;
+  margin: 12px;
+}
+
+#detail-info >* {
+  padding: 12px 24px;
+}
+
+#detail-info > *:not(:last-child) {
+  border-bottom: 5px solid lightslategray;
+}
+
+#detail-info .tag {
+  padding: 2px 5px;
+  background-color: #333;
+  color: white;
+  margin: 2px;
+}
