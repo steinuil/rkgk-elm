@@ -6,6 +6,25 @@ module Pixiv exposing
   , recommended, ranking, trendingTags
   )
 
+{-| API for doing stuff on Pixiv.
+
+# Types
+@docs Id, Tag, Url, Request, Token, User, Illust
+
+# Logging in
+@docs login, refresh
+
+# Sending a request
+@docs send, more
+
+## Helpers
+@docs withOptions, withProxy
+
+# API endpoints
+@docs search, userIllusts, userBookmarks, illust, illustComments, illustRelated, recommended, ranking, trendingTags
+
+-}
+
 import Infix exposing (..)
 
 import Json.Decode exposing (..)
@@ -16,25 +35,26 @@ import Maybe exposing (withDefault)
 import Http
 
 
+-------------------------------------------------------------------------------
+-- Types
+
+{-| An illustration or user ID -}
 type alias Id = Int
 
 
+{-| Stub -}
 type alias Tag = String
 
 
+{-| Stub -}
 type alias Url = String
 
 
+{-| Stub -}
 type alias Request =
   { method : Method
   , url : Url
   , params : Params
-  }
-
-
-type alias Token =
-  { access : String
-  , refresh : String
   }
 
 
@@ -46,6 +66,14 @@ type Method
 type alias Params = Dict String String
 
 
+{-| Stub -}
+type alias Token =
+  { access : String
+  , refresh : String
+  }
+
+
+{-| Stub -}
 type alias User =
   { id : Id
   , name : String
@@ -55,6 +83,7 @@ type alias User =
   }
 
 
+{-| Stub -}
 type alias Illust =
   { urls : List Url
   , count : Int
@@ -73,6 +102,8 @@ type alias Illust =
 -------------------------------------------------------------------------------
 -- Login
 
+{-| Stub -}
+login : (Result Http.Error Token -> msg) -> String -> String -> Cmd msg
 login response name password =
   let
     payload =
@@ -84,6 +115,8 @@ login response name password =
     Http.send response <| getAuth payload
 
 
+{-| Stub -}
+refresh : (Result Http.Error Token -> msg) -> String -> Cmd msg
 refresh response refreshToken =
   let
     payload =
@@ -110,7 +143,7 @@ getAuth data =
   in
     Http.request
       { method = "POST"
-      , headers = headers
+      , headers = appHeaders
       , url = "http://localhost:9292/" ++ "https://oauth.secure.pixiv.net/auth/token"
       , body = Http.multipartBody payload
       , expect = Http.expectJson decoder
@@ -122,6 +155,8 @@ getAuth data =
 -------------------------------------------------------------------------------
 -- Send
 
+{-| Stub -}
+send : (Result Http.Error (List Illust, Maybe Url) -> msg) -> Request -> Cmd msg
 send response req =
   let
     encodeParams =
@@ -134,7 +169,7 @@ send response req =
     get url =
       Http.request
         { method = "GET"
-        , headers = headers
+        , headers = appHeaders
         , url = url
         , body = Http.emptyBody
         , expect = Http.expectJson illustListDecoder
@@ -153,6 +188,8 @@ send response req =
     Http.send response request
 
 
+{-| Stub -}
+more : (Result Http.Error (List Illust, Maybe Url) -> msg) -> Url -> Cmd msg
 more response url =
   let request =
     Http.get url illustListDecoder
@@ -160,6 +197,7 @@ more response url =
     Http.send response request
 
 
+{-| Stub -}
 withOptions : List (String, String) -> Request -> Request
 withOptions new req =
   let
@@ -202,13 +240,14 @@ withOptions new req =
     { req | params = join new req.params }
 
 
+{-| Stub -}
 withProxy : Url -> Request -> Request
 withProxy proxy req =
   { req | url = proxy ++ req.url }
 
 
-headers : List Http.Header
-headers =
+appHeaders : List Http.Header
+appHeaders =
   [ Http.header "App-OS" "ios"
   , Http.header "App-OS-Version" "10.2.1"
   , Http.header "App-Version" "6.4.0"
@@ -218,6 +257,8 @@ headers =
 
 -------------------------------------------------------------------------------
 -- API endpoints
+
+{-| Stub -}
 search : String -> Request
 search word =
   -- search_target = partial_match_for_tags | exact_match_for_tags | title_and_caption
@@ -235,6 +276,7 @@ search word =
     Request Get "https://app-api.pixiv.net/v1/search/illust" params
 
 
+{-| Stub -}
 userIllusts : Id -> Request
 userIllusts id =
   -- offset = Int
@@ -248,6 +290,7 @@ userIllusts id =
     Request Get "https://app-api.pixiv.net/v1/user/illusts" params
 
 
+{-| Stub -}
 userBookmarks : Id -> Request
 userBookmarks id =
   -- max_bookmark_id = ???
@@ -262,6 +305,7 @@ userBookmarks id =
     Request Get "https://app-api.pixiv.net/v1/user/bookmarks/illust" params
 
 
+{-| Stub -}
 illust : Id -> Request
 illust id =
   -- offset = Int
@@ -272,6 +316,7 @@ illust id =
     Request Get "https://app-api.pixiv.net/v1/illust/detail" params
 
 
+{-| Stub -}
 illustComments : Id -> Request
 illustComments id =
   -- offset = Int
@@ -283,6 +328,7 @@ illustComments id =
     Request Get "https://app-api.pixiv.net/v1/illust/comments" params
 
 
+{-| Stub -}
 illustRelated : Id -> Request
 illustRelated id =
   -- seed_illust_ids = String | List String
@@ -295,6 +341,7 @@ illustRelated id =
     Request Get "https://app-api.pixiv.net/v1/illust/related" params
 
 
+{-| Stub -}
 recommended : Request
 recommended =
   -- offset = Int
@@ -311,6 +358,7 @@ recommended =
     Request Get "https://app-api.pixiv.net/v1/illust/recommended-nologin" params
 
 
+{-| Stub -}
 ranking : Request
 ranking =
   let
@@ -324,6 +372,7 @@ ranking =
     Request Get "https://app-api.pixiv.net/v1/illust/ranking" params
 
 
+{-| Stub -}
 trendingTags : Request
 trendingTags =
   let
