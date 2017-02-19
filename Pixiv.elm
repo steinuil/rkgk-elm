@@ -9,7 +9,10 @@ module Pixiv exposing
 {-| API for doing stuff on Pixiv.
 
 # Types
-@docs Id, Tag, Url, Request, Token, User, Illust
+@docs User, Illust, Token, Request
+
+## Helper types
+@docs Id, Tag, Url
 
 # Logging in
 @docs login, refresh
@@ -17,7 +20,7 @@ module Pixiv exposing
 # Sending a request
 @docs send, more
 
-## Helpers
+## Request modifiers
 @docs withOptions, withProxy
 
 # API endpoints
@@ -38,19 +41,51 @@ import Http
 -------------------------------------------------------------------------------
 -- Types
 
-{-| An illustration or user ID -}
+{-| A pixiv user. -}
+type alias User =
+  { id : Id
+  , name : String
+  , handle : String
+  , avatar : Url
+  , following : Bool
+  }
+
+
+{-| An illustration or album. -}
+type alias Illust =
+  { urls : List Url
+  , count : Int
+  , id : Id
+  , title : String
+  , user : User
+  , tags : List Tag
+  , date : String
+  , caption : String
+  , bookmarked : Bool
+  , thumb : Url
+  }
+
+
+{-| -}
 type alias Id = Int
 
 
-{-| Stub -}
+{-| -}
 type alias Tag = String
 
 
-{-| Stub -}
+{-| -}
 type alias Url = String
 
 
-{-| Stub -}
+{-| Tokens for accessing endpoints that require authentication. -}
+type alias Token =
+  { access : String
+  , refresh : String
+  }
+
+
+{-| Represents a request. Might be useful to include in signatures.  -}
 type alias Request =
   { method : Method
   , url : Url
@@ -66,43 +101,14 @@ type Method
 type alias Params = Dict String String
 
 
-{-| Stub -}
-type alias Token =
-  { access : String
-  , refresh : String
-  }
-
-
-{-| Stub -}
-type alias User =
-  { id : Id
-  , name : String
-  , handle : String
-  , avatar : Url
-  , following : Bool
-  }
-
-
-{-| Stub -}
-type alias Illust =
-  { urls : List Url
-  , count : Int
-  , id : Id
-  , title : String
-  , user : User
-  , tags : List Tag
-  , date : String
-  , caption : String
-  , bookmarked : Bool
-  , thumb : Url
-  }
-
-
 
 -------------------------------------------------------------------------------
 -- Login
 
-{-| Stub -}
+{-| Logs in with the given name and password.
+
+    Pixiv.login Login "test" "swordfish"
+-}
 login : (Result Http.Error Token -> msg) -> String -> String -> Cmd msg
 login response name password =
   let
@@ -115,7 +121,10 @@ login response name password =
     Http.send response <| getAuth payload
 
 
-{-| Stub -}
+{-| Refreshes the tokens when the access token is expired.
+
+    Pixiv.refresh Login tokens.refresh
+-}
 refresh : (Result Http.Error Token -> msg) -> String -> Cmd msg
 refresh response refreshToken =
   let
@@ -155,7 +164,11 @@ getAuth data =
 -------------------------------------------------------------------------------
 -- Send
 
-{-| Stub -}
+{-| Turns a request into a Cmd.
+
+    Pixiv.userIllusts 102267
+      |> Pixiv.send Response
+-}
 send : (Result Http.Error (List Illust, Maybe Url) -> msg) -> Request -> Cmd msg
 send response req =
   let
@@ -188,7 +201,16 @@ send response req =
     Http.send response request
 
 
-{-| Stub -}
+{-| For list resources, Pixiv returns a "next url" to fetch the next page.
+This method is to fetch that more easily (or fetch an arbitrary URL, if you
+really want to).
+
+    Pixiv.more currentPage.more
+
+TODO: come up with a way to hide this and add a proxy.
+Perhaps return a `Maybe Cmd msg` instead of a `Maybe Url`, or a
+`Maybe Request`?
+-}
 more : (Result Http.Error (List Illust, Maybe Url) -> msg) -> Url -> Cmd msg
 more response url =
   let request =
@@ -197,7 +219,12 @@ more response url =
     Http.send response request
 
 
-{-| Stub -}
+{-| Modifier to change the options of a request.
+
+    Pixiv.search "カンナカムイ"
+      |> Pixiv.withOptions [ "search_target" => "exact_match_for_tags" ]
+      |> Pixiv.send Response
+-}
 withOptions : List (String, String) -> Request -> Request
 withOptions new req =
   let
@@ -240,7 +267,13 @@ withOptions new req =
     { req | params = join new req.params }
 
 
-{-| Stub -}
+{-| Since Pixiv doesn't allow AJAX calls from another page, you may want to use
+this to define a proxy.
+
+    Pixiv.search "カンナカムイ"
+      |> Pixiv.withProxy "https://example.com"
+      |> Pixiv.send Response
+-}
 withProxy : Url -> Request -> Request
 withProxy proxy req =
   { req | url = proxy ++ req.url }

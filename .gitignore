@@ -2,3 +2,4 @@ elm-*
 *.js
 Gemfile.lock
 .bundle
+documentation.json
