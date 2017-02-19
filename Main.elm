@@ -1,4 +1,4 @@
-import Pixiv exposing (Illust, User, Id, Tag, Url, Token, withOptions, withProxy)
+import Pixiv exposing (Illust, User, Tag, Url, Token, withOptions, withProxy)
 import Infix exposing (..)
 import LocalStorage
 
