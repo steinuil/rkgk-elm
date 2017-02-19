@@ -1,3 +1,4 @@
 elm-*
 *.js
 Gemfile.lock
+.bundle
