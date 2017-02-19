@@ -1,4 +1,10 @@
-module Pixiv exposing (..)
+module Pixiv exposing
+  ( Id, Tag, Url, Request, Token, User, Illust
+  , login, refresh
+  , send, more, withOptions, withProxy
+  , search, userIllusts, userBookmarks, illust, illustComments, illustRelated
+  , recommended, ranking, trendingTags
+  )
 
 import Infix exposing (..)
 
@@ -62,6 +68,55 @@ type alias Illust =
   , thumb : Url
   }
 
+
+
+-------------------------------------------------------------------------------
+-- Login
+
+login response name password =
+  let
+    payload =
+      [ Http.stringPart "grant_type" "password"
+      , Http.stringPart "username" name
+      , Http.stringPart "password" password
+      ]
+  in
+    Http.send response <| getAuth payload
+
+
+refresh response refreshToken =
+  let
+    payload =
+      [ Http.stringPart "grant_type" "refresh_token"
+      , Http.stringPart "refresh_token" refreshToken
+      ]
+  in
+    Http.send response <| getAuth payload
+  
+
+getAuth data =
+  let
+    decoder =
+      field "response"
+        (map2 Token
+          (field "access_token" string)
+          (field "refresh_token" string))
+
+    payload =
+      [ Http.stringPart "get_secure_url" "1"
+      , Http.stringPart "client_id" "bYGKuGVw91e0NMfPGp44euvGt59s"
+      , Http.stringPart "client_secret" "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK"
+      ] ++ data
+  in
+    Http.request
+      { method = "POST"
+      , headers = headers
+      , url = "http://localhost:9292/" ++ "https://oauth.secure.pixiv.net/auth/token"
+      , body = Http.multipartBody payload
+      , expect = Http.expectJson decoder
+      , timeout = Nothing
+      , withCredentials = False
+      }
 
 
 -------------------------------------------------------------------------------
@@ -147,6 +202,11 @@ withOptions new req =
     { req | params = join new req.params }
 
 
+withProxy : Url -> Request -> Request
+withProxy proxy req =
+  { req | url = proxy ++ req.url }
+
+
 headers : List Http.Header
 headers =
   [ Http.header "App-OS" "ios"
@@ -154,11 +214,6 @@ headers =
   , Http.header "App-Version" "6.4.0"
   , Http.header "User-Agent" "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)"
   ]
-
-
-withProxy : Url -> Request -> Request
-withProxy proxy req =
-  { req | url = proxy ++ req.url }
 
 
 -------------------------------------------------------------------------------
@@ -315,57 +370,3 @@ illustListDecoder =
   map2 (,)
     (field "illusts" <| list illustDecoder)
     (maybe <| field "next_url" string)
-
-
-{-
-login response name password =
-  let
-    payload =
-      [ "grant_type" => Encode.string "password"
-      , "username" => Encode.string name
-      , "password" => Encode.string password
-      ]
-  in
-    Http.send response <| getAuth payload
-
-
-refresh response token =
-  let
-    payload =
-      [ "grant_type" => Encode.string "refresh_token"
-      , "refresh_token" => Encode.string token
-      ]
-  in
-    Http.send response <| getAuth payload
-
-
-getAuth data =
-  let
-    decoder =
-      field "response"
-        (map2 Token
-          (field "access_token" string)
-          (field "refresh_token" string))
-
-    payload =
-      Encode.object <|
-        [ "get_secure_url" => Encode.int 1
-        , "client_id" => Encode.string "bYGKuGVw91e0NMfPGp44euvGt59s"
-        , "client_secret" => Encode.string "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK"
-        ] ++ data
-  in
-    Http.request
-      { method = "POST"
-      , headers =
-        [ Http.header "App-OS" "ios"
-        , Http.header "App-OS-Version" "10.2.1"
-        , Http.header "App-Version" "6.4.0"
-        , Http.header "User-Agent" "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)"
-        ]
-      , url = "http://localhost:9292/" ++ "https://oauth.secure.pixiv.net/v1/auth/token"
-      , body = Http.jsonBody payload
-      , expect = Http.expectJson decoder
-      , timeout = Nothing
-      , withCredentials = False
-      }
--}

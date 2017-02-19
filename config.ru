@@ -1,7 +1,9 @@
 require 'rest-client'
 
 app = proc do |env|
-  case env['REQUEST_METHOD']
+  method = env['REQUEST_METHOD']
+
+  case method
   when 'OPTIONS'
     allowed_headers =
       [ 'App-OS', 'App-OS-Version', 'App-Version', 'User-Agent', 'Authorization', 'Content-Type' ]
@@ -33,9 +35,15 @@ app = proc do |env|
         'User-Agent' => 'PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)'
       }
 
+      body = Rack::Request.new(env).params
+
       res =
         begin
-          RestClient.get url, h
+          if method == 'GET'
+            RestClient.get url, h
+          else
+            RestClient.post url, body, h
+          end
         rescue RestClient::ExceptionWithResponse => e
           e.response
         end

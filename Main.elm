@@ -1,7 +1,8 @@
 import Pixiv exposing (Illust, User, Id, Tag, Url, Token, withOptions, withProxy)
 import Infix exposing (..)
+import LocalStorage
 
-import Html exposing (Html, main_, a, img, text, div, span, program)
+import Html exposing (Html, main_, a, img, text, div, span, programWithFlags)
 import Html.Attributes exposing (class, id, src, title)
 import Html.Events exposing (onClick)
 import Http
@@ -9,7 +10,7 @@ import Markdown
 
 
 main =
-  program
+  programWithFlags
     { init = init
     , view = view
     , update = update
@@ -22,6 +23,7 @@ type alias Model =
   , more : Maybe Url
   , history : List (Mode, Maybe Url)
   , error : Maybe String
+  , tokens : Maybe Token
   }
 
 
@@ -38,24 +40,40 @@ type Msg
   | Detail Illust
   | Back
   | Dismiss
+  | Login (Result Http.Error Token)
+
+
+type alias Flags =
+  { accessToken : Maybe String
+  , refreshToken : Maybe String
+  }
 
 
 -- Main functions
-init =
+init : Flags -> (Model, Cmd Msg)
+init flags =
   let
+    tokens = case (flags.accessToken, flags.refreshToken) of
+      (Just a, Just t) -> Just (Token a t)
+      (_, _) -> Nothing
+
     model =
       { illust = ListMode []
       , more = Nothing
       , history = []
       , error = Nothing
+      , tokens = tokens
       }
+
+    login =
+        Cmd.none
 
     cmd =
       Pixiv.userIllusts 102267
         |> withProxy "http://localhost:9292/"
         |> Pixiv.send Response
   in
-    model ! [ cmd ]
+    model ! [ login, cmd ]
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -112,6 +130,18 @@ update msg model =
 
     Dismiss ->
       { model | error = Nothing } ! []
+
+    Login (Ok tokens) ->
+      let
+        cmds =
+          [ LocalStorage.set ("accessToken", tokens.access)
+          , LocalStorage.set ("refreshToken", tokens.refresh)
+          ]
+      in
+        { model | tokens = Just tokens } ! cmds
+
+    Login (Err mess) ->
+      { model | error = Just <| toString mess } ! []
 
 
 
@@ -198,7 +228,6 @@ view model =
           [ div [ class "name" ] [ text illust.title ]
           , div [ class "tags" ] <| illust.tags <!> tag
           , Markdown.toHtml [ class "caption" ] illust.caption
-          --, div [ class "caption" ] [ Markdown.fromHtml [] illust.caption ]
           ]
   in
     main_ []
