@@ -29,6 +29,7 @@ To perform any authenticated requests, you will need to log in first.
 -}
 
 import Infix exposing (..)
+import Pixiv.Params
 
 import Json.Decode exposing (..)
 import Json.Encode as Encode
@@ -229,6 +230,14 @@ Invalid options will be ignored.
     Pixiv.search "カンナカムイ"
       |> Pixiv.withOptions [ "search_target" => "exact_match_for_tags" ]
       |> Pixiv.send Response
+
+FIXME do a better implementation of this crap
+
+How about a Dict of String, Maybe String and merge only those that
+already exist in the original dictionary, and reject those that are Nothing
+at the moment of sending the request
+
+Nah, should be something based on types. This is ugly as fuck.
 -}
 withOptions : List (String, String) -> Request -> Request
 withOptions new req =
@@ -491,7 +500,7 @@ recommended =
   let
     params = Dict.fromList
       [ "content_type" => "illust"
-      , "include_ranking_label" => "false"
+      , "include_ranking_labels" => "false"
       , "filter" => "for_ios"
       ]
   in
