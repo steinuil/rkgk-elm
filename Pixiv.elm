@@ -29,7 +29,7 @@ To perform any authenticated requests, you will need to log in first.
 -}
 
 import Infix exposing (..)
-import Pixiv.Params
+import Pixiv.Params as Params
 
 import Json.Decode exposing (..)
 import Json.Encode as Encode
@@ -94,16 +94,14 @@ type alias Token =
 type alias Request =
   { method : Method
   , url : Url
-  , params : Params
+  , params : Dict String String
+  , allowed : List String
   }
 
 
 type Method
   = Get
   | Post Http.Body
-
-
-type alias Params = Dict String String
 
 
 
@@ -177,6 +175,12 @@ getAuth data =
 send : (Result Http.Error (List Illust, Maybe Url) -> msg) -> Request -> Cmd msg
 send response req =
   let
+    -- FIXME
+    --encodeParams =
+    --  List.map (\p -> let (k, v) = Params.toQuery p in k ++ "=" ++ v)
+    --    >> String.join "&"
+    --    >> (++) "?"
+
     encodeParams =
       Dict.foldr (\k v -> (::) (k ++ "=" ++ v)) []
       >> String.join "&"
@@ -228,53 +232,17 @@ more response url =
 Invalid options will be ignored.
 
     Pixiv.search "カンナカムイ"
-      |> Pixiv.withOptions [ "search_target" => "exact_match_for_tags" ]
+      |> Pixiv.withOptions [ Pixiv.Params.offset 2 ]
       |> Pixiv.send Response
-
-FIXME do a better implementation of this crap
-
-How about a Dict of String, Maybe String and merge only those that
-already exist in the original dictionary, and reject those that are Nothing
-at the moment of sending the request
-
-Nah, should be something based on types. This is ugly as fuck.
 -}
 withOptions : List (String, String) -> Request -> Request
 withOptions new req =
   let
-    member = flip List.member
-
-    bool = member [ "true", "false" ]
-
-    positive =
-      String.toInt >> Result.withDefault -1 >> (<=) 0
-
-    validParams = 
-      Dict.fromList
-        [ "illust_id" => positive
-        , "user_id" => positive
-        , "offset" => positive
-        , "word" => always True
-        , "restrict" => member [ "public", "private" ]
-        , "content_type" => member [ "illust", "manga" ]
-        , "sort" => member [ "date_asc", "date_desc" ]
-        , "search_target" => member [ "partial_match_for_tags", "exact_match_for_tags", "title_and_caption" ]
-        , "duration" => member [ "within_last_day", "within_last_week", "within_last_month" ]
-        , "seed_illust_ids" => always True
-        , "include_total_comments" => bool
-        , "include_ranking_labels" => bool
-        , "include_ranking_illusts" => bool
-        , "filter" => (==) "for_ios"
-        , "mode" => member
-          [ "day", "week", "month", "day_male", "day_female", "week_original", "week_rookie", "day_manga" ]
-        ] 
-
-    valid key =
-      Dict.get key validParams |> withDefault (always False)
-
     join new old =
       Dict.foldr
-        (\k v -> if valid k v then Dict.insert k v else identity)
+        (\k v -> if List.member k req.allowed
+                 then Dict.insert k v
+                 else identity)
         old
         (Dict.fromList new)
   in
@@ -306,58 +274,50 @@ appHeaders =
 -- API endpoints
 
 {-| Search for a tag, or keyword.
-
-Valid options:
-
-    search_target, duration, sort, offset
 -}
 search : String -> Request
 search word =
   let
     params = Dict.fromList
-      [ "word" => word
-      , "search_target" => "partial_match_for_tags"
-      , "sort" => "date_desc"
-      , "filter" => "for_ios"
+      [ Params.word word
+      , Params.searchTarget Params.PartialMatchForTags
+      , Params.sort Params.DateDesc
+      , Params.filterForIos
       ]
+
+    allowed = [ "search_target", "duration", "sort", "offset" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/search/illust" params
+    Request Get "https://app-api.pixiv.net/v1/search/illust" params allowed
 
 
 {-| Selected user's illustrations.
-
-Valid options:
-
-    type, offset
 -}
 userIllusts : UserId -> Request
 userIllusts id =
   let
     params = Dict.fromList
-      [ "user_id" => (toString id)
-      , "type" => "illust"
-      , "filter" => "for_ios"
+      [ Params.userId id
+      , Params.type_ Params.Illust
+      , Params.filterForIos
       ]
+
+    allowed = [ "type", "offset" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/user/illusts" params
+    Request Get "https://app-api.pixiv.net/v1/user/illusts" params allowed
 
 
-{-| Selected user's bookmarks.
-
-Valid options:
-
-    max_bookmark_id : ??, tag : String, restrict
--}
+{-| Selected user's bookmarks.  -}
 userBookmarks : UserId -> Request
 userBookmarks id =
   let
     params = Dict.fromList
-      [ "user_id" => (toString id)
-      , "restrict" => "public"
-      , "filter" => "for_ios"
+      [ Params.userId id
+      , Params.filterForIos
       ]
+
+    allowed = [ "max_bookmark_id", "tag", "restrict" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/user/bookmarks/illust" params
+    Request Get "https://app-api.pixiv.net/v1/user/bookmarks/illust" params allowed
 
 
 {-| Illustrations related to the selected one.
@@ -370,30 +330,33 @@ illustRelated : IllustId -> Request
 illustRelated id =
   let
     params = Dict.fromList
-      [ "illust_id" => (toString id)
-      , "filter" => "for_ios"
+      [ Params.illustId id
+      , Params.filterForIos
       ]
+
+    allowed = [ "seed_illust_ids" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/illust/related" params
+    Request Get "https://app-api.pixiv.net/v1/illust/related" params allowed
 
 
 {-| Recommended illustrations based on the list of illustrations provided.
 -}
 recommendedNoAuth : List IllustId -> Request
 recommendedNoAuth ids =
-  -- offset = Int
-  -- content_type = illust | manga
-  -- include_ranking_label = Bool
-  -- include_ranking_illusts = Bool
   let
     params = Dict.fromList
-      [ "content_type" => "illust"
-      , "include_ranking_label" => "true"
-      , "filter" => "for_ios"
-      , "bookmark_illust_ids" => String.join "," (List.map toString ids)
+      [ Params.contentType Params.Illust
+      , Params.includeRankingLabels False
+      , Params.bookmarkIllustIds ids
+      , Params.filterForIos
+      ]
+
+    allowed =
+      [ "content_type", "include_ranking_label", "include_ranking_illusts"
+      , "bookmark_illust_ids", "offset"
       ]
   in
-    Request Get "https://app-api.pixiv.net/v1/illust/recommended-nologin" params
+    Request Get "https://app-api.pixiv.net/v1/illust/recommended-nologin" params allowed
 
 
 {-| Ranking illustrations.
@@ -401,14 +364,14 @@ recommendedNoAuth ids =
 ranking : Request
 ranking =
   let
-    -- date = 'YYYY-MM-DD'
-    -- offset = Int
     params = Dict.fromList
-      [ "mode" => "day"
-      , "filter" => "for_ios"
+      [ Params.mode Params.Day
+      , Params.filterForIos
       ]
+    
+    allowed = [ "date", "offset" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/illust/ranking" params
+    Request Get "https://app-api.pixiv.net/v1/illust/ranking" params allowed
 
 
 -------------------------------------------------------------------------------
@@ -418,23 +381,25 @@ ranking =
 -}
 illustDetail : IllustId -> Request
 illustDetail id =
-  -- offset = Int
   let
-    params = Dict.fromList
-      [ "illust_id" => (toString id) ]
+    params = Dict.fromList [ Params.illustId id ]
+    
+    allowed = [ "offset" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/illust/detail" params
+    Request Get "https://app-api.pixiv.net/v1/illust/detail" params allowed
 
 -- FIXME expect a User
 userDetail : UserId -> Request
 userDetail id =
   let
     params = Dict.fromList
-      [ "user_id" => toString id
-      , "filter" => "for_ios"
+      [ Params.userId id
+      , Params.filterForIos
       ]
+
+    allowed = []
   in
-    Request Get "https://app-api.pixiv.net/v1/user/detail" params
+    Request Get "https://app-api.pixiv.net/v1/user/detail" params allowed
 
 
 -- FIXME expect a comment list
@@ -444,37 +409,45 @@ illustComments : IllustId -> Request
 illustComments id =
   let
     params = Dict.fromList
-      [ "illust_id" => toString id
-      , "include_total_comments" => "true"
+      [ Params.illustId id
+      , Params.includeTotalComments True
       ]
+
+    allowed = [ "include_total_comments" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/user/detail" params
+    Request Get "https://app-api.pixiv.net/v1/user/detail" params allowed
 
 
 -- FIXME Dunno lol
 trendingTags : Request
 trendingTags =
   let
-    params = Dict.fromList [ "filter" => "for_ios" ]
+    params = Dict.fromList [ Params.filterForIos ]
+
+    allowed = []
   in
-    Request Get "https://app-api.pixiv.net/v1/trending-tags/illust" params
+    Request Get "https://app-api.pixiv.net/v1/trending-tags/illust" params allowed
 
 
 -- People who bookmarked a work?
 illustBookmarkDetail : IllustId -> Request
 illustBookmarkDetail id =
   let
-    params = Dict.fromList [ "illust_id" => toString id ]
+    params = Dict.fromList [ Params.illustId id ]
+
+    allowed = []
   in
-    Request Get "https://app-api.pixiv.net/v2/illust/bookmark/detail" params
+    Request Get "https://app-api.pixiv.net/v2/illust/bookmark/detail" params allowed
 
 
 ugoiraDetail : IllustId -> Request
 ugoiraDetail id =
   let
-    params = Dict.fromList [ "illust_id" => toString id ]
+    params = Dict.fromList [ Params.illustId id ]
+
+    allowed = []
   in
-    Request Get "https://app-api.pixiv.net/v1/ugoira/metadata" params
+    Request Get "https://app-api.pixiv.net/v1/ugoira/metadata" params allowed
 
 
 -------------------------------------------------------------------------------
@@ -485,46 +458,48 @@ ugoiraDetail id =
 illustFollowing : Request
 illustFollowing =
   let
-    params = Dict.fromList [ "restrict" => "public" ]
+    params = Dict.fromList []
+
+    allowed = [ "restrict", "offset" ]
   in
-    Request Get "https://app-api.pixiv.net/v2/illust/follow" params
+    Request Get "https://app-api.pixiv.net/v2/illust/follow" params allowed
 
 
--- "content_type" => member [ "illust", "manga" ]
--- "include_ranking_label" => bool
--- offset
--- "max_bookmark_id_for_recommend" ??
--- "min_bookmark_id_for_recent_illust" ??
 recommended : Request
 recommended =
   let
     params = Dict.fromList
-      [ "content_type" => "illust"
-      , "include_ranking_labels" => "false"
-      , "filter" => "for_ios"
+      [ Params.contentType Params.Illust
+      , Params.filterForIos
+      ]
+
+    allowed =
+      [ "content_type", "include_ranking_label", "max_bookmark_id_for_recommend"
+      , "min_bookmark_id_for_recent_illust", "offset"
       ]
   in
-    Request Get "https://app-api.pixiv.net/v1/illust/recommended" params
+    Request Get "https://app-api.pixiv.net/v1/illust/recommended" params allowed
 
 
 -- "tags" => always True (space-separated)
 addBookmark : IllustId -> Request
 addBookmark id =
   let
-    params = Dict.fromList
-      [ "illust_id" => toString id
-      , "restrict" => "public"
-      ]
+    params = Dict.fromList [ Params.illustId id ]
+
+    allowed = [ "tags", "retrict" ]
   in
-    Request (Post Http.emptyBody) "https://app-api.pixiv.net/v1/illust/bookmark/add" params
+    Request (Post Http.emptyBody) "https://app-api.pixiv.net/v1/illust/bookmark/add" params allowed
 
 
 deleteBookmark : IllustId -> Request
 deleteBookmark id =
   let
-    params = Dict.fromList [ "illust_id" => toString id ]
+    params = Dict.fromList [ Params.illustId id ]
+
+    allowed = []
   in
-    Request (Post Http.emptyBody) "https://app-api.pixiv.net/v1/illust/bookmark/delete" params
+    Request (Post Http.emptyBody) "https://app-api.pixiv.net/v1/illust/bookmark/delete" params allowed
 
 
 -- What the fuck is this anyway?
@@ -533,20 +508,21 @@ bookmarkTagsList : Request
 bookmarkTagsList =
   let
     params = Dict.fromList [ "restrict" => "public" ]
+
+    allowed = [ "restrict", "offset" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/user/bookmark-tags/illust" params
+    Request Get "https://app-api.pixiv.net/v1/user/bookmark-tags/illust" params allowed
 
 
 -- offset
 following : UserId -> Request
 following id =
   let
-    params = Dict.fromList
-      [ "user_id" => toString id
-      , "restrict" => "public"
-      ]
+    params = Dict.fromList [ Params.userId id ]
+
+    allowed = [ "restrict", "offset" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/user/following" params
+    Request Get "https://app-api.pixiv.net/v1/user/following" params allowed
 
 
 -- offset
@@ -554,22 +530,26 @@ followers : UserId -> Request
 followers id =
   let
     params = Dict.fromList
-      [ "user_id" => toString id
-      , "filter" => "for_ios"
+      [ Params.userId id
+      , Params.filterForIos
       ]
+
+    allowed = [ "offset" ]
   in
-    Request Get "https://app-api.pixiv.net/v1/user/follower" params
+    Request Get "https://app-api.pixiv.net/v1/user/follower" params allowed
 
 
 blacklist : UserId -> Request
 blacklist id =
   let
     params = Dict.fromList
-      [ "user_id" => toString id
-      , "filter" => "for_ios"
+      [ Params.userId id
+      , Params.filterForIos
       ]
+
+    allowed = []
   in
-    Request Get "https://app-api.pixiv.net/v1/user/list" params
+    Request Get "https://app-api.pixiv.net/v1/user/list" params allowed
 
 
 -------------------------------------------------------------------------------
