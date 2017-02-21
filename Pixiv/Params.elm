@@ -124,18 +124,18 @@ type RestrictOpts = Public | Private
 contentType : ContentTypeOpts -> Param
 contentType opt =
   "content_type" => case opt of
-    Illust -> "illust"
-    Manga -> "manga"
+    IllustCont -> "illust"
+    MangaCont -> "manga"
 
 {-| Same as above. -}
 type_ : ContentTypeOpts -> Param
 type_ opt =
   "type" => case opt of
-    Illust -> "illust"
-    Manga -> "manga"
+    IllustCont -> "illust"
+    MangaCont -> "manga"
 
 {-| -}
-type ContentTypeOpts = Illust | Manga
+type ContentTypeOpts = IllustCont | MangaCont
 
 {-| Sorting method. -}
 sort : SortOpts -> Param

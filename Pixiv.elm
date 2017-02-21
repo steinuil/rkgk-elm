@@ -300,10 +300,6 @@ Custom parameters: `include_ranking_illusts : Bool`, `include_ranking_label : Bo
 recommendedNoAuth : List IllustId -> Request
 recommendedNoAuth ids =
   { action = Get "https://app-api.pixiv.net/v1/illust/recommended-nologin" 
-  , allowed = [ "content_type", "bookmark_illust_ids", "offset" ]
-  , params = Dict.fromList
-    [ Params.bookmarkIllustIds ids
-    ]
   }
 
 
