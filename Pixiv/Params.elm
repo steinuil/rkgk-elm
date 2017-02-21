@@ -30,15 +30,15 @@ type alias Param = (String, String)
 bool : String -> Bool -> Param
 bool str d = str => if d then "true" else "false"
 
-{-| Return the full text of the comments in the request. -}
+{-| Return the total number of comments (default behavior is to return 0) -}
 includeTotalComments : Bool -> Param
 includeTotalComments = bool "include_total_comments"
 
-{-| Include the ranking position in the illustration info.  -}
+{-| Seems to do nothing?  -}
 includeRankingLabels : Bool -> Param
 includeRankingLabels = bool "include_ranking_labels"
 
-{-| Include the ranking illustrations in the result. -}
+{-| Include some ranking illustrations in the request -}
 includeRankingIllusts : Bool -> Param
 includeRankingIllusts = bool "include_ranking_illusts"
 

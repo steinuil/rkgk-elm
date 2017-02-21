@@ -14,6 +14,12 @@ rackup
 ```
 Navigate to `localhost:9292` in your browser.
 
+## Documentation
+```
+make docs
+```
+Navigate to [the Elm doc previewer](http://package.elm-lang.org/help/docs-preview) and select `documentation.json`.
+
 ## Plans for the future
 - Better UI using [history.pushState()](https://developer.mozilla.org/en-US/docs/Web/API/History_API)
 - Support for opening tabs
