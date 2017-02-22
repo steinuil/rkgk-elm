@@ -1,12 +1,12 @@
-module Pixiv.Decoders exposing (Page, request, LoginInfo, login)
+module Pixiv.Decoders exposing (request, login)
 
 {-| Raw decoders and types for the Pixiv API.
 
 # Page decoders
-@docs Page, request
+@docs request
 
 # Login info decoders
-@docs LoginInfo, login
+@docs login
 -}
 
 import Json.Decode exposing (..)
@@ -41,17 +41,6 @@ maybeString str =
 -------------------------------------------------------------------------------
 -- Toplevel decoders
 
-{-| Various types of page. -}
-type Page =
-    IllustList (List Illust) (Maybe Url)
-  | CommentList (List Comment) (Maybe Url)
-  | UserPreviews (List (User, List Illust)) (Maybe Url)
-  | TrendingTags (List (Tag, Illust))
-  | IllustDetail Illust
-  | UserDetail ExtendedUser
-  | UgoiraData Ugoira
-
-
 {-| A drop-in decoder that handles (almost) all results of a request. -}
 request : Decoder Page
 request =
@@ -79,19 +68,6 @@ request =
 
     , map UgoiraData (field "ugoira_metadata" ugoira)
     ]
-
-
-{-| Info about the login session and user. -}
-type alias LoginInfo =
-  { accessToken : String
-  , refreshToken : String
-  , user :
-    { id : UserId
-    , name : String
-    , account : String
-    , avatar : Url
-    }
-  }
 
 
 type alias LoggedUser =

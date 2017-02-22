@@ -8,9 +8,13 @@ Meant to be fully exposed.
 
 # Base types
 @docs Illust, User, ExtendedUser, Comment, Ugoira, UserInfo, Workspace
+
+# Others
+@docs Request, Page, PageInfo, LoginInfo, Tokens, Method
 -}
 
 import Date exposing (Date)
+import Dict exposing (Dict)
 
 
 {-| -}
@@ -134,3 +138,55 @@ type alias Workspace =
   , comment : Maybe String
   , picture : Maybe Url
   }
+
+
+{-| -}
+type alias Request =
+  { method : Method
+  , url : Url
+  , return : PageInfo
+  , allowed : List String
+  , params : Dict String String
+  }
+
+
+{-| Various types of page. -}
+type Page =
+    IllustList (List Illust) (Maybe Url)
+  | CommentList (List Comment) (Maybe Url)
+  | UserPreviews (List (User, List Illust)) (Maybe Url)
+  | TrendingTags (List (Tag, Illust))
+  | IllustDetail Illust
+  | UserDetail ExtendedUser
+  | UgoiraData Ugoira
+
+
+{-| -}
+type PageInfo =
+    BasePage String
+  | UserPage String User
+  | IllustPage String Illust
+
+
+{-| Info about the login session and user. -}
+type alias LoginInfo =
+  { accessToken : String
+  , refreshToken : String
+  , user :
+    { id : UserId
+    , name : String
+    , account : String
+    , avatar : Url
+    }
+  }
+
+
+{-| -}
+type alias Tokens =
+  { accessToken : String
+  , refreshToken : String
+  }
+
+
+{-| -}
+type Method = GetNoAuth | Get String | Post String

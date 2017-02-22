@@ -1,3 +1,5 @@
+module Pixiv.Endpoints exposing (..)
+
 import Pixiv.Types exposing (..)
 import Pixiv.Params as Params exposing
   ( RestrictOpts(..), ContentTypeOpts(..), SortOpts(..), SearchTargetOpts(..)
@@ -5,27 +7,11 @@ import Pixiv.Params as Params exposing
   )
 import Pixiv.Decoders as Decoders
 
+import Dict
 
 {-
 Objectives: eliminate Pixiv.Params because it's fucking ugly.
 -}
-
-type alias Request =
-  { method : Method
-  , url : Url
-  , return : PageInfo
-  , allowed : List String
-  , default : List (String, String)
-  }
-
-
-type PageInfo =
-    BasePage String
-  | UserPage String User
-  | IllustPage String Illust
-
-
-type Method = GetNoAuth | Post | Get
 
 
 {-| Search for a tag, or keyword. -}
@@ -35,7 +21,7 @@ search word =
   , url = "/v1/search/illust" 
   , return = BasePage ("Search: " ++ word)
   , allowed = [ "search_target", "duration", "sort", "offset" ]
-  , default =
+  , params = Dict.fromList
     [ Params.word word
     , Params.searchTarget PartialMatchForTags
     , Params.sort DateDesc
@@ -50,7 +36,7 @@ ranking =
   , url = "/v1/illust/ranking"
   , return = BasePage "Ranking"
   , allowed = [ "date", "offset" ]
-  , default = []
+  , params = Dict.fromList []
   }
 
 
@@ -61,7 +47,7 @@ recommendedNoAuth =
   , url = "/v1/illust/recommended-nologin" 
   , return = BasePage "Recommended"
   , allowed = [ "content_type", "bookmark_illust_ids", "offset" ]
-  , default = []
+  , params = Dict.fromList []
   }
 
 
@@ -72,7 +58,7 @@ userIllusts user =
   , url = "/v1/user/illusts"
   , return = UserPage "Illustrations" user
   , allowed = [ "type", "offset" ]
-  , default =
+  , params = Dict.fromList
     [ Params.userId user.id
     , Params.type_ IllustCont
     ] 
@@ -86,7 +72,7 @@ userBookmarks user =
   , url = "/v1/user/bookmarks/illust" 
   , return = UserPage "Bookmarks" user
   , allowed = [ "max_bookmark_id", "tag" ]
-  , default =
+  , params = Dict.fromList
     [ Params.userId user.id
     , Params.restrict Public
     ]
@@ -100,7 +86,7 @@ related illust =
   , url = "/v1/illust/related" 
   , return = IllustPage "Related" illust
   , allowed = [ "seed_illust_id" ]
-  , default = [ Params.illustId illust.id ]
+  , params = Dict.fromList [ Params.illustId illust.id ]
   }
 
 
