@@ -393,7 +393,7 @@ illust : IllustId -> Request
 illust id =
   { action = Get "https://app-api.pixiv.net/v1/illust/detail" 
   , allowed = [ "offset" ]
-  , params = Dict.fromList [ Params.illustId id ]
+  , 
   }
 
 

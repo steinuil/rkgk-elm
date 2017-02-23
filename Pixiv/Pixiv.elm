@@ -1,4 +1,13 @@
-module Pixiv.Pixiv exposing (..)
+module Pixiv.Pixiv exposing (Response, send, more, login, refresh)
+
+{- Requests
+
+@docs Response
+
+@docs send, more
+
+@docs login, refresh
+-}
 
 import Pixiv.Types exposing (..)
 import Pixiv.Decoders as Decoders
@@ -10,20 +19,16 @@ import Dict exposing (Dict)
 import Json.Decode as Decode
 
 
-type alias Response msg =
-  Result Http.Error (Page, PageInfo) -> msg
+type alias Response t msg = Result Http.Error t -> msg
 
 
--- FIXME: The endpoints urls now don't have the hostname included.
-
-
-send : Response msg -> Request -> Cmd msg
+send : Response (Page, PageInfo) msg -> Request -> Cmd msg
 send response request =
   let
     url =
       Dict.foldr (\k v -> (::) (k ++ "=" ++ v)) [] request.params
         |> String.join "&"
-        |> (++) (request.url ++ "?")
+        |> (++) ("https://app-api.pixiv.net/" ++ request.url ++ "?")
 
     (method, auth) = case request.method of
       GetNoAuth -> ("GET", Nothing)
@@ -43,7 +48,11 @@ send response request =
         }
 
 
-more : (Result Http.Error Page -> msg) -> Maybe String -> Url -> Cmd msg
+{-| For list resources, Pixiv returns a "next url" to fetch the next page.
+This function is to fetch that more easily (or fetch an arbitrary URL, if you
+really want to).
+-}
+more : Response Page msg -> Maybe String -> Url -> Cmd msg
 more response auth url =
   Http.send response
     <| httpRequest
@@ -55,7 +64,23 @@ more response auth url =
       }
 
 
-login : (Result Http.Error LoginInfo -> msg) -> String -> String -> Cmd msg
+withOptions : List (String, String) -> Request -> Request
+withOptions new request =
+  let
+    insertIfAllowed k v =
+      if
+        List.member k request.allowed
+      then
+        Dict.insert k v
+      else
+        identity
+
+    newParams = Dict.foldr insertIfAllowed request.params (Dict.fromList new)
+  in
+    { request | params = newParams }
+
+
+login : Response LoginInfo msg -> String -> String -> Cmd msg
 login response name password =
   authRequest response
     [ Http.stringPart "grant_type" "password"
@@ -64,7 +89,7 @@ login response name password =
     ]
 
 
-refresh : (Result Http.Error LoginInfo -> msg) -> String -> Cmd msg
+refresh : Response LoginInfo msg -> String -> Cmd msg
 refresh response refreshToken =
   authRequest response
     [ Http.stringPart "grant_type" "refresh_token"
