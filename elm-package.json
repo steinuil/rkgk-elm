@@ -10,7 +10,9 @@
         "Pixiv",
         "Pixiv.Params",
         "Pixiv.Types",
-        "Pixiv.Decoders"
+        "Pixiv.Decoders",
+        "Pixiv.Pixiv",
+        "Pixiv.Endpoints"
     ],
     "dependencies": {
         "NoRedInk/elm-decode-pipeline": "3.0.0 <= v < 4.0.0",

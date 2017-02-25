@@ -1,10 +1,10 @@
-module Pixiv.Pixiv exposing (Response, send, more, login, refresh)
+module Pixiv.Pixiv exposing (Response, send, more, withOptions, login, refresh)
 
-{- Requests
+{-| Requests
 
 @docs Response
 
-@docs send, more
+@docs send, more, withOptions
 
 @docs login, refresh
 -}
@@ -19,9 +19,16 @@ import Dict exposing (Dict)
 import Json.Decode as Decode
 
 
+{-| Response type without too much typing. -}
 type alias Response t msg = Result Http.Error t -> msg
 
 
+{-| Send a pre-constructed Pixiv request.
+
+Returns both a Page and a Page Info, to give a bit of info about the page to
+display in the UI (e.g. if it's an user works page return the User, if it was
+a search return the search term etc)
+-}
 send : Response (Page, PageInfo) msg -> Request -> Cmd msg
 send response request =
   let
@@ -64,6 +71,9 @@ more response auth url =
       }
 
 
+{-| Change the parameters of a request. Merges them only if they're in the list
+of allowed parameters.
+-}
 withOptions : List (String, String) -> Request -> Request
 withOptions new request =
   let
@@ -80,6 +90,8 @@ withOptions new request =
     { request | params = newParams }
 
 
+{-| Logis in and returns a LoginInfo, containing the tokens and basic user info.
+-}
 login : Response LoginInfo msg -> String -> String -> Cmd msg
 login response name password =
   authRequest response
@@ -89,6 +101,7 @@ login response name password =
     ]
 
 
+{-| Get new tokens if you already have a valid refresh token. -}
 refresh : Response LoginInfo msg -> String -> Cmd msg
 refresh response refreshToken =
   authRequest response

@@ -1,12 +1,16 @@
-module Pixiv.Endpoints exposing (..)
+module Pixiv.Endpoints exposing
+  ( search, ranking, recommendedNoAuth, userIllusts, userBookmarks, related
+  , illust, user, ugoiraData
+  , myFeed, myRecommended, myBookmarkTags, illustBookmarkDetail
+  )
 
-{- Endpoints
+{-| Endpoints
 
 # Unauthenticated
 @docs search, ranking, recommendedNoAuth, userIllusts, userBookmarks, related
 
 ## Single resources
-@ illust, user, ugoiraData
+@docs illust, user, ugoiraData
 
 # Authenticated
 @docs myFeed, myRecommended, myBookmarkTags, illustBookmarkDetail
@@ -26,6 +30,8 @@ type alias AccessToken = String
 
 {-
 Objectives: eliminate Pixiv.Params because it's fucking ugly.
+
+Stuff to infer: following and unfollowing users.
 -}
 
 
@@ -119,22 +125,22 @@ trendingTags =
 {-| List of the users followed by the given user with a few preview illusts. -}
 following : User -> Request
 following user =
-  { action = GetNoAuth
+  { method = GetNoAuth
   , url = "v1/user/following"
   , return = UserPage "Following" user
   , allowed = [ "offset" ]
-  , params = Dict.fromList [ Params.userId id ]
+  , params = Dict.fromList [ Params.userId user.id ]
   }
 
 
 {-| Same as above, for the followers of the given user. -}
 followers : User -> Request
 followers user =
-  { action = GetNoAuth
+  { method = GetNoAuth
   , url = "v1/user/follower"
   , return = UserPage "Followers" user
   , allowed = [ "offset" ]
-  , params = Dict.fromList [ Params.userId id ]
+  , params = Dict.fromList [ Params.userId user.id ]
   }
 
 
@@ -184,11 +190,12 @@ with the duration for each of them. Like fuck I'm supporting Ugoira.
 -}
 ugoiraData : Illust -> Request
 ugoiraData illust =
-  { action = GetNoAuth
+  { method = GetNoAuth
   , url = "v1/ugoira/metadata"
   , return = IllustPage "Ugoira" illust
   , allowed = []
   , params = Dict.fromList [ Params.illustId illust.id ]
+  }
 
 
 -------------------------------------------------------------------------------
@@ -196,7 +203,7 @@ ugoiraData illust =
 {-| New works from the users you follow. -}
 myFeed : AccessToken -> Request
 myFeed token =
-  { action = Get token
+  { method = Get token
   , url = "v2/illust/follow"
   , return = BasePage "New Works - Following"
   , allowed = [ "restrict", "offset" ]
@@ -208,22 +215,22 @@ myFeed token =
 {-| Recommended illustrations based on your bookmarks. -}
 myRecommended : AccessToken -> Request
 myRecommended token =
-  { action = Get token
+  { method = Get token
   , url = "v1/illust/recommended"
   , return = BasePage "Recommended"
   , allowed =
     [ "content_type", "include_ranking_label", "max_bookmark_id_for_recommend"
     , "min_bookmark_id_for_recent_illust", "offset"
     ]
-  , params = Dict.fromList [ Params.contentType Params.Illust ]
+  , params = Dict.fromList [ Params.contentType Params.IllustCont ]
   }
 
 
-{-| Tags you've used to sort your bookmarks -}
 -- FIXME write a decoder for this
+{-| Tags you've used to sort your bookmarks -}
 myBookmarkTags : AccessToken -> Request
 myBookmarkTags token =
-  { action = Get token
+  { method = Get token
   , url = "v1/user/bookmark-tags/illust"
   , return = BasePage "Bookmark Tags"
   , allowed = [ "restrict", "offset" ]
@@ -231,11 +238,11 @@ myBookmarkTags token =
   }
 
 
-{-| No idea -}
 -- FIXME what
+{-| No idea -}
 illustBookmarkDetail : AccessToken -> Illust -> Request
 illustBookmarkDetail token illust =
-  { action = Get token
+  { method = Get token
   , url = "v2/illust/bookmark/detail"
   , return = IllustPage "Bookmark Detail" illust
   , allowed = []
@@ -248,7 +255,7 @@ illustBookmarkDetail token illust =
 {-
 addBookmark : accesstoken -> illustid -> request
 addBookmark token id =
-  { action = Post token
+  { method = Post token
   , url = "v1/illust/bookmark/add"
   , return = FIXME
   , allowed = [ "tags", "restrict" ]
@@ -258,7 +265,7 @@ addBookmark token id =
 
 deleteBookmark : accesstoken -> illustid -> request
 deleteBookmark token id =
-  { action = Post token
+  { method = Post token
   , url = "v1/illust/bookmark/add"
   , return = FIXME
   , allowed = []

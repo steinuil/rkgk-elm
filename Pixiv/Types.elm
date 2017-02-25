@@ -140,7 +140,10 @@ type alias Workspace =
   }
 
 
-{-| -}
+{-| A request, containing the method and the access token if needed, the url,
+the default parameters, the allowed parameters and some additional info to
+return.
+-}
 type alias Request =
   { method : Method
   , url : Url
@@ -161,7 +164,7 @@ type Page =
   | UgoiraData Ugoira
 
 
-{-| -}
+{-| Types of page info. -}
 type PageInfo =
     BasePage String
   | UserPage String User
@@ -181,12 +184,12 @@ type alias LoginInfo =
   }
 
 
-{-| -}
+{-| Just the tokens for when you only need those. -}
 type alias Tokens =
   { accessToken : String
   , refreshToken : String
   }
 
 
-{-| -}
+{-| Types of API requests, Get and Post require the access token. -}
 type Method = GetNoAuth | Get String | Post String
