@@ -120,9 +120,9 @@ illust =
       |> custom (oneOf [ singleUrl, multipleUrls ])
       |> required "width" int
       |> required "height" int
-      |> required "total_views" int
-      |> required "total_bookmarks" int
-      |> required "total_comments" int
+      |> custom (oneOf [ "total_views" := int, succeed 0 ])
+      |> custom (oneOf [ "total_bookmarks" := int, succeed 0 ])
+      |> custom (oneOf [ "total_comments" := int, succeed 0 ])
       |> required "is_bookmarked" bool
       |> required "is_muted" bool
       |> required "restrict" int

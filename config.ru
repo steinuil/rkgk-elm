@@ -1,6 +1,12 @@
 require 'rest-client'
 
-use Rack::Static, urls: [ '' ], root: 'static', index: 'index.html'
+use Rack::Static, root: 'static', urls: {
+  '/' => 'pixiv.html',
+  '/pixiv.js' => 'pixiv.js',
+  '/pixiv.css' => 'pixiv.css',
+}
+
+#use Rack::Static, urls: [ '/static' ], root: 'static', index: 'pixiv.html'
 
 app = Proc.new do |env|
   case method = env['REQUEST_METHOD']
@@ -17,11 +23,13 @@ app = Proc.new do |env|
     [ 200, headers, [] ]
 
   when 'GET', 'POST'
-    unless path = env['REQUEST_PATH'] ~= /\/https:\/\/.*/
+    unless (path = env['REQUEST_PATH']) =~ /\/https:\/\/.*/
       return [ 404, {}, [] ]
     end
 
     req_url = path[1..-1] + '?' + env['QUERY_STRING']
+
+    p req_url
 
     req_headers = {
       'Referer' => 'https://pixiv.net',

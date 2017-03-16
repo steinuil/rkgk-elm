@@ -1,4 +1,4 @@
-module Pixiv.Pixiv exposing (Response, send, more, withOptions, login, refresh)
+module Pixiv exposing (Response, send, more, withOptions, login, refresh)
 
 {-| Requests
 
@@ -35,7 +35,7 @@ send response request =
     url =
       Dict.foldr (\k v -> (::) (k ++ "=" ++ v)) [] request.params
         |> String.join "&"
-        |> (++) ("https://app-api.pixiv.net/" ++ request.url ++ "?")
+        |> (++) ("http://localhost:9292/" ++ "https://app-api.pixiv.net/" ++ request.url ++ "?")
 
     (method, auth) = case request.method of
       GetNoAuth -> ("GET", Nothing)
@@ -90,7 +90,7 @@ withOptions new request =
     { request | params = newParams }
 
 
-{-| Logis in and returns a LoginInfo, containing the tokens and basic user info.
+{-| Logs in and returns a LoginInfo, containing the tokens and basic user info.
 -}
 login : Response LoginInfo msg -> String -> String -> Cmd msg
 login response name password =
@@ -115,7 +115,7 @@ authRequest response data =
     <| httpRequest
       { method = "POST"
       , token = Nothing
-      , url = "https://oauth.secure.pixiv.net/auth/token"
+      , url = "http://localhost:9292/" ++ "https://oauth.secure.pixiv.net/auth/token"
       , body = Just <| Http.multipartBody <|
         [ Http.stringPart "get_secure_url" "1"
         , Http.stringPart "client_id" "bYGKuGVw91e0NMfPGp44euvGt59s"

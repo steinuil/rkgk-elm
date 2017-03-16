@@ -1,0 +1,186 @@
+illustDetail:
+  illust:
+    # Basic info
+    id: Int
+    title: String
+    caption: String
+    create_date: Date
+    user:
+      id: Int
+      name: String
+      account: String # Account @name
+      profile_image_urls:
+        medium: Url
+      is_followed: Bool
+
+    # List of tags
+    tags:
+      - name: String
+
+    type: "illust" | "manga" | "ugoira"
+
+    # Software/objects used to create the illustration
+    tools:
+      - String
+
+    # Actual images
+    image_urls:
+      square_medium: Url
+      medium: Url
+      large: Url
+
+    meta_single_page: # If there's only one illustration the url is here
+      original_image_url: Url
+
+    meta_pages: # If there's more than one page there's a list of urls
+      - image_urls: (list of urls)
+          square_medium: Url
+          medium: Url
+          Large: Url
+          original: Url
+
+    # Images info
+    page_count: Int
+    width: Int
+    height: Int
+
+    # Not sure
+    restrict: Enum 0
+    sanity_level: Enum 2 4
+    visible: Bool
+
+    total_view?: Int
+    total_bookmarks?: Int
+    total_comments?: Int
+
+    is_bookmarked: Bool
+    is_muted: Bool
+
+
+ugoiraDetail:
+  ugoira_metadata:
+    zip_urls:
+      medium: Url
+    frames:
+      - file: String
+        delay: Int
+
+
+userDetail:
+  user:
+    id: Int
+    name: String
+    account: String
+    profile_image_urls:
+      medium: Url
+    comment: String
+    is_followed: Bool
+
+  profile:
+    webpage: String?
+    gender: "male" | "female" | ""
+    birth: Date | ""
+    region: String
+    job: String
+    total_follow_users: Int
+    total_follower: Int
+    total_mypixiv_users: Int
+    total_illusts: Int
+    total_manga: Int
+    total_novels: Int
+    total_illust_bookmarks_public: Int
+    background_image_url: Url?
+    twitter_account: String
+    twitter_url: Url?
+    is_premium: Bool
+
+  workspace:
+    pc: String
+    monitor: String
+    tool: String
+    scanner: String
+    tablet: String
+    mouse: String
+    printer: String
+    desktop: String
+    music: String
+    desk: String
+    chair: String
+    comment: String
+    workspace_image_url: Url?
+
+
+illustComments:
+  total_comments: Int
+  comments:
+    - id: Int
+      comment: String
+      date: Date
+      user:
+        id: Int
+        name: String
+        profile_image_urls:
+          medium: Url
+
+  next_url: Url?
+
+
+trendingTags:
+  trend_tags:
+    - tag: String
+      illust: (see illustDetail.illust)
+
+
+trending:
+  illusts:
+    - (see illustDetail.illust)
+  next_url: Url?
+
+
+recommendedNoAuth:
+  illusts:
+    - (see illustDetail.illust)
+  ranking_illusts:
+    - (see illustDetail.illust)
+  next_url: Url?
+
+
+
+following:
+followers:
+  user_previews:
+    - user: (see userDetail.user)
+      illusts:
+        - (see illustDetail.illust)
+      novels:
+        - novel?
+      is_muted: Bool
+
+
+userNovels:
+  novels:
+    - id: Int
+      title: String
+      caption: String
+      restrict : Int
+      image_urls:
+        square_medium: String
+        medium: String
+        large: String
+      create_date: Date
+      tags:
+        - name: String
+      page_count: Int
+      text_length: Int
+      user: (see illustDetail.user)
+      series:
+        id: Int
+        title: String
+      is_bookmarked: Bool
+      total_bookmarks: Int
+      total_views: Int
+      total_comments: Int
+      visible: Bool
+      is_muted: Bool
+
+    next_url: String?

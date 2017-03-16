@@ -1,8 +1,8 @@
 all:
-	elm make Main.elm --output pixiv.js
+	elm make Main.elm --output static/pixiv.js
 
 docs:
-	elm make Main.elm --output pixiv.js --docs=documentation.json
+	elm make Main.elm --output static/pixiv.js --docs=documentation.json
 
 warn:
-	elm make Main.elm --output pixiv.js --warn
+	elm make Main.elm --output static/pixiv.js --warn

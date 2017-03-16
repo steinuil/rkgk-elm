@@ -162,6 +162,7 @@ type Page =
   | IllustDetail Illust
   | UserDetail ExtendedUser
   | UgoiraData Ugoira
+  | EmptyPage
 
 
 {-| Types of page info. -}
