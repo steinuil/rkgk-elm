@@ -3,3 +3,4 @@ elm-stuff
 Gemfile.lock
 .bundle
 documentation.json
+Old*.elm

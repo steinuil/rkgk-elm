@@ -63,7 +63,7 @@ more : Response Page msg -> Maybe String -> Url -> Cmd msg
 more response auth url =
   Http.send response
     <| httpRequest
-      { url = url
+      { url = "http://localhost:9292/" ++ url
       , method = "GET"
       , token = auth
       , expect = Decoders.request

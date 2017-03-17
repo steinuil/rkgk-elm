@@ -32,6 +32,10 @@ type alias Model =
 type Msg =
     Query Request
   | Response (Result Http.Error (Page, PageInfo))
+  | More
+  | MoreResp (Result Http.Error Page)
+  | Detail Illust
+  | Back
 
 
 init : (Model, Cmd Msg)
@@ -61,34 +65,99 @@ init =
     model ! [ cmd ]
 
 
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Query req ->
-      req |> Pixiv.send Response
+      model ! [ req |> Pixiv.send Response ]
 
-    Response (Ok (page, info)) ->
-      let new = { model | page = (page, info) } in
+    More ->
+      let
+        auth = model.tokens |> Maybe.map .accessToken
+
+        url = case Tuple.first model.page of
+          IllustList _ url -> url
+          CommentList _ url -> url
+          UserPreviews _ url -> url
+          _ -> Nothing
+
+        cmd = case url of
+          Just url -> Pixiv.more MoreResp auth url
+          Nothing -> Cmd.none
+      in
+        model ! [ cmd ]
+
+    Detail illust ->
+      let
+        page = (IllustDetail illust, IllustPage "Detail" illust)
+
+        new = { model | page = page, history = model.page :: model.history }
+      in
+        new ! []
+
+    Response (Ok page) ->
+      let
+        history = case model.page of
+          (EmptyPage, _) -> model.history
+          p -> p :: model.history
+
+        new = { model | page = page, history = history }
+      in
         new ! []
 
     Response (Err message) ->
       let new = { model | error = Just <| toString message } in
         new ! []
 
+    MoreResp (Err message) ->
+      let new = { model | error = Just <| toString message } in
+        new ! []
+
+    MoreResp (Ok page) ->
+      let
+        newPage =
+          case (Tuple.first model.page, page) of
+            (IllustList list _, IllustList list2 newUrl) ->
+              IllustList (list ++ list2) newUrl
+            (CommentList list _, CommentList list2 newUrl) ->
+              CommentList (list ++ list2) newUrl
+            (UserPreviews list _, UserPreviews list2 newUrl) ->
+              UserPreviews (list ++ list2) newUrl
+            _ ->
+              (Tuple.first model.page)
+
+        new = { model | page = (newPage, Tuple.second model.page) }
+      in
+        new ! []
+
+    Back ->
+      let
+        tail = List.tail model.history ?: []
+
+        (page, history) =
+          case List.head model.history of
+            Just p ->  (p, tail)
+            Nothing -> (model.page, model.history)
+
+        new = { model | page = page, history = history }
+      in
+        new ! []
+
 
 -- Utilities
-proxy : String -> Url
-proxy = (++) "http://localhost:9292/"
-
-
-empty = text ""
-
-
 view : Model -> Html Msg
 view model =
   let
+    proxy : String -> Url
+    proxy = (++) "http://localhost:9292/"
+
+
+    empty = text ""
+
+
     thumb illust =
       let count = span [ class "count" ] [ text <| toString illust.count ] in
-        a [ class "thumbnail link" ]
+        a [ class "thumbnail link", onClick <| Detail illust ]
           [ img [ src <| proxy illust.thumbnail ] []
           , if illust.count > 1 then count else empty
           ]
@@ -98,6 +167,9 @@ view model =
       a [ class "tag link" ]
         [ text name ]
 
+
+    pic url =
+      div [ class "picture" ] [ img [ src <| proxy url ] [] ]
 
     --
 
@@ -109,9 +181,11 @@ view model =
         empty
 
 
-    page = case model.page of
-      (IllustList illusts url, _) ->
+    page = case Tuple.first model.page of
+      IllustList illusts url ->
         div [ id "list" ] <| illusts <!> thumb
+      IllustDetail illust ->
+        div [ id "detail" ] <| illust.urls <!> pic
       _ ->
         empty
 
@@ -139,7 +213,9 @@ view model =
 
     back = case model.history of
       [] -> empty
-      _ -> a [ id "back", class "link" ] [ text "back" ]
+      _ ->
+        a [ id "back", class "link", onClick Back ]
+          [ text "back" ]
 
 
     more =
@@ -153,7 +229,7 @@ view model =
         case next of
           Just _ -> 
             div [ id "more" ]
-              [ div [ class "cont" ]
+              [ div [ class "cont", onClick More ]
                 [ text "Load more" ]
               ]
           Nothing -> empty
