@@ -29,8 +29,9 @@ type alias Model =
   }
 
 
-type Msg
-  = Response (Result Http.Error (Page, PageInfo))
+type Msg =
+    Query Request
+  | Response (Result Http.Error (Page, PageInfo))
 
 
 init : (Model, Cmd Msg)
@@ -62,6 +63,9 @@ init =
 
 update msg model =
   case msg of
+    Query req ->
+      req |> Pixiv.send Response
+
     Response (Ok (page, info)) ->
       let new = { model | page = (page, info) } in
         new ! []
@@ -89,12 +93,14 @@ view model =
           , if illust.count > 1 then count else empty
           ]
 
+
     tag name =
       a [ class "tag link" ]
         [ text name ]
 
-    pic url =
-      div [ class "picture" ] [ img [ src <| proxy url ] [] ]
+
+    --
+
 
     error = case model.error of
       Just msg ->
@@ -102,35 +108,56 @@ view model =
       Nothing ->
         empty
 
+
     page = case model.page of
       (IllustList illusts url, _) ->
         div [ id "list" ] <| illusts <!> thumb
       _ ->
         empty
 
+
+    pageInfo = case model.page of
+      (EmptyPage, _) ->
+        empty
+
+      (_, BasePage name) ->
+        div [ id "page-info", class "base" ]
+          [ span [ class "name" ] [ text name ] ]
+
+      (_, UserPage name user) ->
+        div [ id "page-info", class "artist" ]
+          [ text name
+          , img [ class "avatar", src <| proxy user.avatar ] []
+          , a [ class "name link", title user.nick ]
+            [ text user.name ]
+          ]
+
+      (_, IllustPage name illust) ->
+        div [ id "page-info", class "illust" ]
+          [ span [ class "name" ] [ text name ] ]
+
+
     back = case model.history of
       [] -> empty
       _ -> a [ id "back", class "link" ] [ text "back" ]
 
-    {-
-    more = case model.more of
-      Just url ->
-        div [ id "more" ]
-          [ div [ class "cont" ]
-            [ text "Load more" ]
-          ]
-      Nothing -> empty
 
-    pageInfo = case model.illust of
-      IllustList illusts url ->
-        div [ id "page-info", class "artist" ]
-          [ img [ class "avatar", src <| proxy illust.user.avatar ] []
-          , a [ class "name link", title illust.user.nick ]
-            [ text illust.user.name ]
-          ]
-      _ ->
-        empty
-    -}
+    more =
+      let
+        next = case Tuple.first model.page of
+          IllustList _ url -> url
+          CommentList _ url -> url
+          UserPreviews _ url -> url
+          _ -> Nothing
+      in
+        case next of
+          Just _ -> 
+            div [ id "more" ]
+              [ div [ class "cont" ]
+                [ text "Load more" ]
+              ]
+          Nothing -> empty
+
 
     {-
     info = case model.illust of
@@ -144,9 +171,9 @@ view model =
   in
     main_ []
       [ back
-      -- , pageInfo
+      , pageInfo
       , page
-      --, more
+      , more
       --, info
       , error
       ]

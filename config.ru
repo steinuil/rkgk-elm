@@ -6,9 +6,7 @@ use Rack::Static, root: 'static', urls: {
   '/pixiv.css' => 'pixiv.css',
 }
 
-#use Rack::Static, urls: [ '/static' ], root: 'static', index: 'pixiv.html'
-
-app = Proc.new do |env|
+app = lambda do |env|
   case method = env['REQUEST_METHOD']
   when 'OPTIONS'
     headers = {
@@ -28,8 +26,6 @@ app = Proc.new do |env|
     end
 
     req_url = path[1..-1] + '?' + env['QUERY_STRING']
-
-    p req_url
 
     req_headers = {
       'Referer' => 'https://pixiv.net',
