@@ -25,6 +25,10 @@ app = lambda do |env|
       return [ 404, {}, [] ]
     end
 
+    if env['HTTP_IF_MODIFIED_SINCE']
+      return [ 304, {}, [] ]
+    end
+
     req_url = path[1..-1] + '?' + env['QUERY_STRING']
 
     req_headers = {
@@ -54,10 +58,16 @@ app = lambda do |env|
         e.response
       end
 
+    content_type = response.headers[:content_type]
+
     headers = {
-      'Content-Type' => response.headers[:content_type],
+      'Content-Type' => content_type,
       'Access-Control-Allow-Origin' => '*'
     }
+
+    if content_type =~ /image\/.+/
+      headers['Last-Modified'] = Time.now.strftime('%a, %d %b %Y %T %Z')
+    end
 
     [ response.code.to_s, headers, [ response.body ] ]
 

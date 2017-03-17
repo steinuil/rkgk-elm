@@ -87,14 +87,6 @@ update msg model =
       in
         model ! [ cmd ]
 
-    Detail illust ->
-      let
-        page = (IllustDetail illust, IllustPage "Detail" illust)
-
-        new = { model | page = page, history = model.page :: model.history }
-      in
-        new ! []
-
     Response (Ok page) ->
       let
         history = case model.page of
@@ -103,14 +95,6 @@ update msg model =
 
         new = { model | page = page, history = history }
       in
-        new ! []
-
-    Response (Err message) ->
-      let new = { model | error = Just <| toString message } in
-        new ! []
-
-    MoreResp (Err message) ->
-      let new = { model | error = Just <| toString message } in
         new ! []
 
     MoreResp (Ok page) ->
@@ -123,10 +107,25 @@ update msg model =
               CommentList (list ++ list2) newUrl
             (UserPreviews list _, UserPreviews list2 newUrl) ->
               UserPreviews (list ++ list2) newUrl
-            _ ->
-              (Tuple.first model.page)
+            (p, _) -> p
 
         new = { model | page = (newPage, Tuple.second model.page) }
+      in
+        new ! []
+
+    Response (Err message) ->
+      let new = { model | error = Just <| toString message } in
+        new ! []
+
+    MoreResp (Err message) ->
+      let new = { model | error = Just <| toString message } in
+        new ! []
+
+    Detail illust ->
+      let
+        page = (IllustDetail illust, IllustPage "Detail" illust)
+
+        new = { model | page = page, history = model.page :: model.history }
       in
         new ! []
 
@@ -234,7 +233,7 @@ view model =
               ]
           Nothing -> empty
 
-
+    --info = case Tuple.second model.page of
     {-
     info = case model.illust of
       DetailMode illust ->
