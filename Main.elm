@@ -5,8 +5,8 @@ import Pixiv.Endpoints as Endpoints
 import Infix exposing (..)
 --import LocalStorage
 
-import Html exposing (Html, main_, a, img, text, div, span)
-import Html.Attributes exposing (class, id, src, title)
+import Html exposing (Html, main_, a, img, text, div, span, nav)
+import Html.Attributes exposing (class, id, src, title, style)
 import Html.Events exposing (onClick)
 import Http
 import Markdown
@@ -26,6 +26,7 @@ type alias Model =
   , history : List (Page, PageInfo)
   , error : Maybe String
   , tokens : Maybe Tokens
+  , loadingMore : Bool
   }
 
 
@@ -53,6 +54,7 @@ init =
       , history = []
       , error = Nothing
       , tokens = tokens
+      , loadingMore = False
       }
 
     startPage = case tokens of
@@ -84,8 +86,10 @@ update msg model =
         cmd = case url of
           Just url -> Pixiv.more MoreResp auth url
           Nothing -> Cmd.none
+
+        new = { model | loadingMore = True }
       in
-        model ! [ cmd ]
+        new ! [ cmd ]
 
     Response (Ok page) ->
       let
@@ -109,7 +113,8 @@ update msg model =
               UserPreviews (list ++ list2) newUrl
             (p, _) -> p
 
-        new = { model | page = (newPage, Tuple.second model.page) }
+        new = { model | page = (newPage, Tuple.second model.page)
+                      , loadingMore = False }
       in
         new ! []
 
@@ -118,7 +123,7 @@ update msg model =
         new ! []
 
     MoreResp (Err message) ->
-      let new = { model | error = Just <| toString message } in
+      let new = { model | error = Just <| toString message, loadingMore = False } in
         new ! []
 
     Detail illust ->
@@ -173,6 +178,28 @@ view model =
     --
 
 
+    navBar =
+      let
+        link name endpoint =
+          div [ class "link", onClick <| Query <| endpoint ] [ text name ]
+
+        (related, userIllust) =
+          case Tuple.first model.page of
+            IllustDetail illust ->
+              ( link "Related" <| Endpoints.related illust
+              , link "User's works" <| Endpoints.userIllusts illust.user
+              )
+            _ ->
+              (empty, empty)
+      in
+        nav []
+          [ div [ class "link", onClick <| Query <| Endpoints.ranking ] [ text "Ranking" ]
+          , div [ class "link", onClick <| Query <| Endpoints.recommendedNoAuth ] [ text "Recommended" ]
+          , related
+          , userIllust
+          ]
+
+
     error = case model.error of
       Just msg ->
         div [ id "error", class "link" ] [ text msg ]
@@ -224,11 +251,16 @@ view model =
           CommentList _ url -> url
           UserPreviews _ url -> url
           _ -> Nothing
+
+        link =
+          if model.loadingMore
+          then style [ "opacity" => ".3" ]
+          else onClick More
       in
         case next of
           Just _ -> 
             div [ id "more" ]
-              [ div [ class "cont", onClick More ]
+              [ div [ class "cont", link ]
                 [ text "Load more" ]
               ]
           Nothing -> empty
@@ -247,6 +279,7 @@ view model =
     main_ []
       [ back
       , pageInfo
+      , navBar
       , page
       , more
       --, info

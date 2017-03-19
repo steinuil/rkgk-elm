@@ -104,7 +104,7 @@ userBookmarks user =
 related : Illust -> Request
 related illust =
   { method = GetNoAuth
-  , url = "v1/illust/related" 
+  , url = "v2/illust/related"
   , return = IllustPage "Related" illust
   , allowed = [ "seed_illust_id" ]
   , params = Dict.fromList [ Params.illustId illust.id ]

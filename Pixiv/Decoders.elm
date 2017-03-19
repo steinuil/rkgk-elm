@@ -1,4 +1,4 @@
-module Pixiv.Decoders exposing (request, login)
+module Pixiv.Decoders exposing (request, login, error)
 
 {-| Raw decoders and types for the Pixiv API.
 
@@ -7,6 +7,9 @@ module Pixiv.Decoders exposing (request, login)
 
 # Login info decoders
 @docs login
+
+# Other
+@docs error
 -}
 
 import Json.Decode exposing (..)
@@ -91,6 +94,13 @@ login =
           ("name" := string)
           ("account" := string)
           (at [ "profile_image_urls", "px_170x170" ] string))))
+
+
+
+{-| Decodes the error message. -}
+error : Decoder String
+error =
+  field "error" ("user_message" := string)
 
 
 -------------------------------------------------------------------------------

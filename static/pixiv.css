@@ -64,6 +64,21 @@ p a {
   margin: 24px;
 }
 
+nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+nav .link {
+  padding: 6px 10px;
+  background-color: black;
+  color: white;
+  display: inline-block;
+  opacity: .6;
+  margin: 6px 3px;
+}
+
 #page-info .name {
   padding: 6px 10px;
   background-color: black;

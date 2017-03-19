@@ -25,6 +25,7 @@ app = lambda do |env|
       return [ 404, {}, [] ]
     end
 
+    # Let's just assume Pixiv's image urls never change
     if env['HTTP_IF_MODIFIED_SINCE']
       return [ 304, {}, [] ]
     end
