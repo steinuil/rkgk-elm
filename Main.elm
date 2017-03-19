@@ -258,7 +258,7 @@ view model =
           else onClick More
       in
         case next of
-          Just _ -> 
+          Just _ ->
             div [ id "more" ]
               [ div [ class "cont", link ]
                 [ text "Load more" ]

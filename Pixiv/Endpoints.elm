@@ -39,7 +39,7 @@ Stuff to infer: following and unfollowing users.
 search : String -> Request
 search word =
   { method = GetNoAuth
-  , url = "v1/search/illust" 
+  , url = "v1/search/illust"
   , return = BasePage ("Search: " ++ word)
   , allowed = [ "search_target", "duration", "sort", "offset" ]
   , params = Dict.fromList
@@ -65,7 +65,7 @@ ranking =
 recommendedNoAuth : Request
 recommendedNoAuth =
   { method = GetNoAuth
-  , url = "v1/illust/recommended-nologin" 
+  , url = "v1/illust/recommended-nologin"
   , return = BasePage "Recommended"
   , allowed = [ "content_type", "bookmark_illust_ids", "offset" ]
   , params = Dict.fromList []
@@ -82,7 +82,7 @@ userIllusts user =
   , params = Dict.fromList
     [ Params.userId user.id
     , Params.type_ IllustCont
-    ] 
+    ]
   }
 
 
@@ -90,7 +90,7 @@ userIllusts user =
 userBookmarks : User -> Request
 userBookmarks user =
   { method = GetNoAuth
-  , url = "v1/user/bookmarks/illust" 
+  , url = "v1/user/bookmarks/illust"
   , return = UserPage "Bookmarks" user
   , allowed = [ "max_bookmark_id", "tag" ]
   , params = Dict.fromList
@@ -151,7 +151,7 @@ comments illust =
   , url = "v1/illust/comments"
   , return = IllustPage "Comments" illust
   , allowed = [ "include_total_comments", "offset" ]
-  , params = Dict.fromList [ Params.illustId illust.id ] 
+  , params = Dict.fromList [ Params.illustId illust.id ]
   }
 
 
@@ -176,7 +176,7 @@ illust id =
 user : UserId -> Request
 user id =
   { method = GetNoAuth
-  , url = "v1/user/detail" 
+  , url = "v1/user/detail"
   , return = BasePage "User"
   , allowed = []
   , params = Dict.fromList [ Params.userId id ]

@@ -108,7 +108,7 @@ error =
 
 illust : Decoder Illust
 illust =
-  let 
+  let
     -- If there's a single picture, try to extract the url and stick it in a list.
     singleUrl =
       map (\x -> [x]) <| at [ "meta_single_page", "original_image_url" ] string
