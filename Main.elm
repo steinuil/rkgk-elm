@@ -6,7 +6,7 @@ import Infix exposing (..)
 --import LocalStorage
 
 import Html exposing (Html, main_, a, img, text, div, span, nav)
-import Html.Attributes exposing (class, id, src, title, style)
+import Html.Attributes exposing (class, id, src, title, style, href, target)
 import Html.Events exposing (onClick)
 import Http
 import Markdown
@@ -177,26 +177,45 @@ view model =
 
     --
 
+    share illust =
+      let
+        link = "http://www.pixiv.net/member_illust.php?mode=medium&illust_id="
+          ++ (toString illust.id)
+
+        t =
+          illust.title ++ " | " ++ illust.user.name
+
+        tweet =
+          "https://twitter.com/intent/tweet?"
+            ++ "text=" ++ Http.encodeUri t
+            ++ "&url=" ++ Http.encodeUri link
+            ++ "&related=" ++ "steinuil"
+      in
+        div [ class "link" ]
+          [ a [ href tweet, target "_blank" ] [ text "Tweet" ] ]
+
 
     navBar =
       let
         link name endpoint =
           div [ class "link", onClick <| Query <| endpoint ] [ text name ]
 
-        (related, userIllust) =
+        (related, userIllust, shareButton) =
           case Tuple.first model.page of
             IllustDetail illust ->
               ( link "Related" <| Endpoints.related illust
               , link "User's works" <| Endpoints.userIllusts illust.user
+              , share illust
               )
             _ ->
-              (empty, empty)
+              (empty, empty, empty)
       in
         nav []
-          [ div [ class "link", onClick <| Query <| Endpoints.ranking ] [ text "Ranking" ]
-          , div [ class "link", onClick <| Query <| Endpoints.recommendedNoAuth ] [ text "Recommended" ]
+          [ link "Ranking" Endpoints.ranking
+          , link "Recommended" Endpoints.recommendedNoAuth
           , related
           , userIllust
+          , shareButton
           ]
 
 
@@ -226,8 +245,8 @@ view model =
 
       (_, UserPage name user) ->
         div [ id "page-info", class "artist" ]
-          [ text name
-          , img [ class "avatar", src <| proxy user.avatar ] []
+          [ img [ class "avatar", src <| proxy user.avatar ] []
+          , text name
           , a [ class "name link", title user.nick ]
             [ text user.name ]
           ]

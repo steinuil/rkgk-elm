@@ -13,6 +13,8 @@ body {
 
 a {
   display: inline-block;
+  text-decoration: none;
+  color: unset;
 }
 
 .link {
@@ -98,7 +100,6 @@ nav .link {
 #page-info.artist .name {
   margin: auto 6px 0;
 }
-
 
 #list {
   display: flex;
