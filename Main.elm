@@ -5,9 +5,9 @@ import Pixiv.Endpoints as Endpoints
 import Infix exposing (..)
 --import LocalStorage
 
-import Html exposing (Html, main_, a, img, text, div, span, nav)
-import Html.Attributes exposing (class, id, src, title, style, href, target)
-import Html.Events exposing (onClick)
+import Html exposing (Html, main_, a, img, text, div, span, nav, form, input)
+import Html.Attributes exposing (class, id, src, title, style, href, target, type_, value)
+import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Markdown
 
@@ -27,6 +27,7 @@ type alias Model =
   , error : Maybe String
   , tokens : Maybe Tokens
   , loadingMore : Bool
+  , query : Maybe String
   }
 
 
@@ -37,6 +38,8 @@ type Msg =
   | MoreResp (Result Http.Error Page)
   | Detail Illust
   | Back
+  | Input String
+  | Submit
 
 
 init : (Model, Cmd Msg)
@@ -55,6 +58,7 @@ init =
       , error = Nothing
       , tokens = tokens
       , loadingMore = False
+      , query = Nothing
       }
 
     startPage = case tokens of
@@ -147,6 +151,28 @@ update msg model =
       in
         new ! []
 
+    Input str ->
+      let
+        query = case str of
+          "" -> Nothing
+          _ -> Just str
+
+        new =
+          { model | query = query }
+      in
+        new ! []
+
+    Submit ->
+      let
+        cmd = case model.query of
+          Nothing -> Cmd.none
+          Just str ->
+            Endpoints.search str
+              |> Pixiv.send Response
+      in
+        model ! [ cmd ]
+
+
 
 -- Utilities
 view : Model -> Html Msg
@@ -195,6 +221,13 @@ view model =
           [ a [ href tweet, target "_blank" ] [ text "Tweet" ] ]
 
 
+    searchBar =
+      form [ onSubmit Submit, id "search" ]
+        [ input [ type_ "text", onInput Input ] []
+        , input [ class "button", type_ "submit", value "Search" ] []
+        ]
+
+
     navBar =
       let
         link name endpoint =
@@ -211,7 +244,8 @@ view model =
               (empty, empty, empty)
       in
         nav []
-          [ link "Ranking" Endpoints.ranking
+          [ searchBar
+          , link "Ranking" Endpoints.ranking
           , link "Recommended" Endpoints.recommendedNoAuth
           , related
           , userIllust
@@ -301,6 +335,5 @@ view model =
       , navBar
       , page
       , more
-      --, info
       , error
       ]

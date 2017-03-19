@@ -81,6 +81,24 @@ nav .link {
   margin: 6px 3px;
 }
 
+#search {
+  display: flex;
+  justify-content: center;
+  margin: 6px 3px;
+}
+
+#search input {
+  font-size: 1em;
+  padding: 5px 10px;
+}
+
+#search .button {
+  background-color: black;
+  color: white;
+  opacity: .6;
+  cursor: pointer;
+}
+
 #page-info .name {
   padding: 6px 10px;
   background-color: black;
