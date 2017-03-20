@@ -194,7 +194,7 @@ view model =
 
 
     tag name =
-      a [ class "tag link" ]
+      a [ class "tag link", onClick <| Input name ]
         [ text name ]
 
 
@@ -223,7 +223,7 @@ view model =
 
     searchBar =
       form [ onSubmit Submit, id "search" ]
-        [ input [ type_ "text", onInput Input ] []
+        [ input [ type_ "text", onInput Input, value (model.query ?: "") ] []
         , input [ class "button", type_ "submit", value "Search" ] []
         ]
 
@@ -318,22 +318,22 @@ view model =
               ]
           Nothing -> empty
 
-    --info = case Tuple.second model.page of
-    {-
-    info = case model.illust of
-      DetailMode illust ->
+
+    info = case Tuple.first model.page of
+      IllustDetail illust ->
         div [ id "detail-info", class "illust" ]
           [ div [ class "name" ] [ text illust.title ]
           , div [ class "tags" ] <| illust.tags <!> tag
           , Markdown.toHtml [ class "caption" ] illust.caption
           ]
-    -}
+      _ -> empty
   in
     main_ []
       [ back
+      , error
       , pageInfo
       , navBar
       , page
       , more
-      , error
+      , info
       ]
