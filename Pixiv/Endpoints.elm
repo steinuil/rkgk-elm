@@ -1,5 +1,5 @@
 module Pixiv.Endpoints exposing
-  ( search, ranking, recommendedNoAuth, userIllusts, userBookmarks, related
+  ( search, ranking, recommended, userIllusts, userBookmarks, related
   , illust, user, ugoiraData
   , myFeed, myRecommended, myBookmarkTags, illustBookmarkDetail
   )
@@ -7,7 +7,7 @@ module Pixiv.Endpoints exposing
 {-| Endpoints
 
 # Unauthenticated
-@docs search, ranking, recommendedNoAuth, userIllusts, userBookmarks, related
+@docs search, ranking, recommended, userIllusts, userBookmarks, related
 
 ## Single resources
 @docs illust, user, ugoiraData
@@ -62,8 +62,8 @@ ranking =
 
 
 {-| Recommended illustrations. Can be based on a list of bookmarks provided. -}
-recommendedNoAuth : Request
-recommendedNoAuth =
+recommended : Request
+recommended =
   { method = GetNoAuth
   , url = "v1/illust/recommended-nologin"
   , return = BasePage "Recommended"

@@ -39,6 +39,7 @@ type Msg =
   | Detail Illust
   | Back
   | Input String
+  | Search String
   | Submit
 
 
@@ -162,6 +163,14 @@ update msg model =
       in
         new ! []
 
+    Search str ->
+      let
+        new = { model | query = Just str }
+
+        cmd = Endpoints.search str |> Pixiv.send Response
+      in
+        new ! [ cmd ]
+
     Submit ->
       let
         cmd = case model.query of
@@ -194,7 +203,7 @@ view model =
 
 
     tag name =
-      a [ class "tag link", onClick <| Input name ]
+      a [ class "tag link", onClick <| Search name ]
         [ text name ]
 
 
@@ -242,11 +251,16 @@ view model =
               )
             _ ->
               (empty, empty, empty)
+
+        recs = case model.tokens of
+          Nothing -> Endpoints.recommended
+          Just {accessToken, refreshToken} ->
+            Endpoints.myRecommended accessToken
       in
         nav []
           [ searchBar
           , link "Ranking" Endpoints.ranking
-          , link "Recommended" Endpoints.recommendedNoAuth
+          , link "Recommended" recs
           , related
           , userIllust
           , shareButton
