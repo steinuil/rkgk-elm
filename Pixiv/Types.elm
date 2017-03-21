@@ -168,6 +168,7 @@ type Page =
 {-| Types of page info. -}
 type PageInfo =
     BasePage String
+  | SearchPage String
   | UserPage String User
   | IllustPage String Illust
 

@@ -21,7 +21,7 @@ make docs
 Navigate to [the Elm doc previewer](http://package.elm-lang.org/help/docs-preview) and select `documentation.json`.
 
 ## Plans for the future
-- Better UI using [history.pushState()](https://developer.mozilla.org/en-US/docs/Web/API/History_API)
+- Rewrite UI using elm-lang/navigation
 - Support for opening tabs
 - Browsing and managing follows, bookmarks, etc
 - Release Pixiv.elm as a standalone library

@@ -42,7 +42,7 @@ search : String -> Request
 search word =
   { method = GetNoAuth
   , url = "v1/search/illust"
-  , return = BasePage ("Search: " ++ word)
+  , return = SearchPage word
   , allowed = [ "search_target", "duration", "sort", "offset" ]
   , params = Dict.fromList
     [ Params.word word
@@ -161,10 +161,14 @@ comments illust =
 popularPreview : String -> Request
 popularPreview query =
   { method = GetNoAuth
-  , url = "v1/search/popular"
+  , url = "v1/search/popular-preview/illust"
   , return = BasePage ("Popular: " ++ query)
-  , allowed = []
-  , params = Dict.fromList [ Params.word query ]
+  , allowed = [ "search_target", "duration", "sort", "offset" ]
+  , params = Dict.fromList
+    [ Params.word query
+    , Params.searchTarget PartialMatchForTags
+    , Params.sort DateDesc
+    ]
   }
 
 

@@ -256,11 +256,16 @@ view model =
           Nothing -> Endpoints.recommended
           Just {access, refresh} ->
             Endpoints.myRecommended access
+
+        popular = case Tuple.second model.page of
+          SearchPage query -> link "Most Popular" <| Endpoints.popularPreview query
+          _ -> empty
       in
         nav []
           [ searchBar
           , link "Ranking" Endpoints.ranking
           , link "Recommended" recs
+          , popular
           , related
           , userIllust
           , shareButton
@@ -290,6 +295,10 @@ view model =
       (_, BasePage name) ->
         div [ id "page-info", class "base" ]
           [ span [ class "name" ] [ text name ] ]
+
+      (_, SearchPage query) ->
+        div [ id "page-info", class "base" ]
+          [ span [ class "name" ] [ text <| "Search: " ++ query ] ]
 
       (_, UserPage name user) ->
         div [ id "page-info", class "artist" ]
@@ -344,10 +353,10 @@ view model =
   in
     main_ []
       [ back
-      , error
       , pageInfo
       , navBar
       , page
       , more
       , info
+      , error -- so that the z-index is the highest
       ]
