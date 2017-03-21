@@ -1,5 +1,6 @@
 module Pixiv.Endpoints exposing
   ( search, ranking, recommended, userIllusts, userBookmarks, related
+  , popularPreview
   , illust, user, ugoiraData
   , myFeed, myRecommended, myBookmarkTags, illustBookmarkDetail
   )
@@ -8,6 +9,7 @@ module Pixiv.Endpoints exposing
 
 # Unauthenticated
 @docs search, ranking, recommended, userIllusts, userBookmarks, related
+@docs popularPreview
 
 ## Single resources
 @docs illust, user, ugoiraData
@@ -155,6 +157,17 @@ comments illust =
   }
 
 
+{-| A preview of a few popular works for that query string. -}
+popularPreview : String -> Request
+popularPreview query =
+  { method = GetNoAuth
+  , url = "v1/search/popular"
+  , return = BasePage ("Popular: " ++ query)
+  , allowed = []
+  , params = Dict.fromList [ Params.word query ]
+  }
+
+
 -------------------------------------------------------------------------------
 
 {-| Information about a single illustration.
@@ -270,5 +283,24 @@ deleteBookmark token id =
   , return = FIXME
   , allowed = []
   , params = Dict.fromlist [ Params.illustid id ]
+  }
+
+follow : AccessToken -> User -> Request
+follow token user =
+  { method = Post token
+  , url = "v1/user/follow/add"
+  , return = FIXME
+  , allowed = []
+  , params = Dict.fromList [ "user_id" => user ]
+  }
+
+
+unfollow : AccessToken -> User -> Request
+unfollow token user =
+  { method = Post token
+  , url = "v1/user/follow/delete"
+  , return = FIXME
+  , allowed = []
+  , params = Dict.fromList [ "user_id" => user ]
   }
 -}

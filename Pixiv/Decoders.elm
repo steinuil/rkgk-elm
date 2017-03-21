@@ -50,7 +50,7 @@ request =
   oneOf
     [ map2 IllustList
       ("illusts" := (list illust))
-      ("next_url" := (nullable string))
+      (oneOf [ "next_url" := (nullable string), succeed Nothing ])
 
     , map2 CommentList
       ("comments" := (list comment))
