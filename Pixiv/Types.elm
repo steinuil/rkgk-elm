@@ -174,8 +174,8 @@ type PageInfo =
 
 {-| Info about the login session and user. -}
 type alias LoginInfo =
-  { accessToken : String
-  , refreshToken : String
+  { access : String
+  , refresh : String
   , user :
     { id : UserId
     , name : String
@@ -187,8 +187,8 @@ type alias LoginInfo =
 
 {-| Just the tokens for when you only need those. -}
 type alias Tokens =
-  { accessToken : String
-  , refreshToken : String
+  { access : String
+  , refresh : String
   }
 
 

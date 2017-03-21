@@ -64,7 +64,7 @@ init =
 
     startPage = case tokens of
       Nothing -> Endpoints.ranking
-      Just toks -> Endpoints.myFeed toks.accessToken
+      Just toks -> Endpoints.myFeed toks.access
 
     cmd = startPage
       |> Pixiv.send Response
@@ -80,7 +80,7 @@ update msg model =
 
     More ->
       let
-        auth = model.tokens |> Maybe.map .accessToken
+        auth = model.tokens |> Maybe.map .access
 
         url = case Tuple.first model.page of
           IllustList _ url -> url
@@ -203,7 +203,7 @@ view model =
 
 
     tag name =
-      a [ class "tag link", onClick <| Search name ]
+      a [ class "tag link", onClick <| Input name ]
         [ text name ]
 
 
@@ -254,8 +254,8 @@ view model =
 
         recs = case model.tokens of
           Nothing -> Endpoints.recommended
-          Just {accessToken, refreshToken} ->
-            Endpoints.myRecommended accessToken
+          Just {access, refresh} ->
+            Endpoints.myRecommended access
       in
         nav []
           [ searchBar
