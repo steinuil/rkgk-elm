@@ -1,3 +1,4 @@
+# Yes, I know this is a terrible makefile.
 all:
 	elm make Main.elm --output static/pixiv.js
 

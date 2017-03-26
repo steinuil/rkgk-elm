@@ -6,7 +6,7 @@ import Infix exposing (..)
 --import LocalStorage
 
 import Html exposing (Html, main_, a, img, text, div, span, nav, form, input)
-import Html.Attributes exposing (class, id, src, title, style, href, target, type_, value)
+import Html.Attributes exposing (class, id, src, title, style, href, target, type_, value, height, width)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Markdown
@@ -207,8 +207,15 @@ view model =
         [ text name ]
 
 
-    pic url =
-      div [ class "picture" ] [ img [ src <| proxy url ] [] ]
+    pic size url =
+      let
+        attr =
+          (src <| proxy url) ::
+            (case size of
+              Just (w, h) -> [ width w, height h ]
+              Nothing -> [])
+      in
+        div [ class "picture" ] [ img attr [] ]
 
     --
 
@@ -283,7 +290,13 @@ view model =
       IllustList illusts url ->
         div [ id "list" ] <| illusts <!> thumb
       IllustDetail illust ->
-        div [ id "detail" ] <| illust.urls <!> pic
+        let
+          illusts = case illust.urls of
+            first :: rest ->
+              pic (Just (illust.width, illust.height)) first :: rest <!> (pic Nothing)
+            [] -> []
+        in
+          div [ id "detail" ] illusts
       _ ->
         empty
 
