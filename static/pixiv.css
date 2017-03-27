@@ -42,6 +42,50 @@ p a {
   color: white;
 }
 
+#loading {
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin: 24px;
+}
+
+@keyframes loading-dot {
+  0% { transform: scaleY(1) }
+  60% { transform: scaleY(.5); }
+  90% { transform: scaleY(1) }
+}
+
+#loading .box {
+  display: inline-block;
+  clear: both;
+  background-color: black;
+  opacity: .6;
+  height: 50px;
+  margin: 1px;
+  width: 10px;
+  animation: loading-dot 1s infinite ease-in-out;
+}
+
+#loading .box:nth-child(2) {
+  animation-delay: .1s;
+}
+
+#loading .box:nth-child(3) {
+  animation-delay: .2s;
+}
+
+#loading .box:nth-child(4) {
+  animation-delay: .3s;
+}
+
+#loading .box:nth-child(5) {
+  animation-delay: .4s;
+}
+
+#loading .box:nth-child(6) {
+  animation-delay: .5s;
+}
+
 #back {
   position: fixed;
   top: 0;
@@ -215,8 +259,14 @@ nav .link {
 }
 
 #detail-info .tag {
-  padding: 2px 5px;
+
+  margin: 2px;
+  display: inline-block;
+}
+
+#detail-info .tag .link {
   background-color: #333;
   color: white;
-  margin: 2px;
+  padding: 2px 5px;
+  margin-left: 1px;
 }

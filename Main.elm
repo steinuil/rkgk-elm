@@ -25,7 +25,7 @@ type alias Model =
   , history : List (Page, PageInfo)
   , error : Maybe String
   , tokens : Maybe Tokens
-  , loadingMore : Bool
+  , loading : Bool
   , query : Maybe String
   }
 
@@ -57,7 +57,7 @@ init =
       , history = []
       , error = Nothing
       , tokens = tokens
-      , loadingMore = False
+      , loading = True
       , query = Nothing
       }
 
@@ -75,7 +75,8 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Query req ->
-      model ! [ req |> Pixiv.send Response ]
+      let new = { model | loading = True } in
+        new ! [ req |> Pixiv.send Response ]
 
     More ->
       let
@@ -91,7 +92,7 @@ update msg model =
           Just url -> Pixiv.more MoreResp auth url
           Nothing -> Cmd.none
 
-        new = { model | loadingMore = True }
+        new = { model | loading = True }
       in
         new ! [ cmd ]
 
@@ -101,7 +102,7 @@ update msg model =
           (EmptyPage, _) -> model.history
           p -> p :: model.history
 
-        new = { model | page = page, history = history }
+        new = { model | page = page, history = history, loading = False }
       in
         new ! []
 
@@ -118,16 +119,16 @@ update msg model =
             (p, _) -> p
 
         new = { model | page = (newPage, Tuple.second model.page)
-                      , loadingMore = False }
+                      , loading = False }
       in
         new ! []
 
     Response (Err message) ->
-      let new = { model | error = Just <| toString message } in
+      let new = { model | error = Just <| toString message, loading = False } in
         new ! []
 
     MoreResp (Err message) ->
-      let new = { model | error = Just <| toString message, loadingMore = False } in
+      let new = { model | error = Just <| toString message, loading = False } in
         new ! []
 
     Detail illust ->
@@ -164,7 +165,7 @@ update msg model =
 
     Search str ->
       let
-        new = { model | query = Just str }
+        new = { model | query = Just str, loading = True }
 
         cmd = Endpoints.search str |> Pixiv.send Response
       in
@@ -177,8 +178,12 @@ update msg model =
           Just str ->
             Endpoints.search str
               |> Pixiv.send Response
+
+        new = case model.query of
+          Nothing -> model
+          Just _ -> { model | loading = True }
       in
-        model ! [ cmd ]
+        new ! [ cmd ]
 
 
 
@@ -202,8 +207,10 @@ view model =
 
 
     tag name =
-      a [ class "tag link", onClick <| Input name ]
-        [ text name ]
+      div [ class "tag" ]
+        [ a [ class "link", onClick <| Search name ] [ text name ]
+        , a [ class "link", onClick <| Input <| ((Maybe.map (\ x -> x ++ " ") model.query) ?: "" ++ name) ] [ text "+" ]
+        ]
 
 
     pic size url =
@@ -341,7 +348,7 @@ view model =
           _ -> Nothing
 
         link =
-          if model.loadingMore
+          if model.loading
           then style [ "opacity" => ".3" ]
           else onClick More
       in
@@ -362,6 +369,13 @@ view model =
           , Markdown.toHtml [ class "caption" ] illust.caption
           ]
       _ -> empty
+
+
+    loading = case model.loading of
+      True ->
+        let box = div [ class "box" ] [] in
+          div [ id "loading" ] [ box, box, box, box, box, box ]
+      False -> empty
   in
     main_ []
       [ back
@@ -370,5 +384,6 @@ view model =
       , page
       , more
       , info
+      , loading
       , error -- so that the z-index is the highest
       ]
