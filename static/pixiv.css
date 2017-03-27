@@ -193,6 +193,8 @@ nav .link {
 #detail .picture img {
   max-height: calc(100vh - 150px);
   max-width: calc(100vw - 50px);
+  width: auto;
+  height: auto;
   margin: 6px auto;
 }
 

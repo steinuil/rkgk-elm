@@ -1,9 +1,11 @@
-# Yes, I know this is a terrible makefile.
-all:
+all: static/pixiv.js
+
+docs: documentation.json
+
+static/pixiv.js:
 	elm make Main.elm --output static/pixiv.js
 
-docs:
-	elm make Main.elm --output static/pixiv.js --docs=documentation.json
+documentation.json:
+	elm make Main.elm --output /dev/null --docs=documentation.json
 
-warn:
-	elm make Main.elm --output static/pixiv.js --warn
+.PHONY: static/pixiv.js documentation.json

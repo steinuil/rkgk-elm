@@ -3,7 +3,6 @@ import Pixiv
 import Pixiv.Endpoints as Endpoints
 
 import Infix exposing (..)
---import LocalStorage
 
 import Html exposing (Html, main_, a, img, text, div, span, nav, form, input)
 import Html.Attributes exposing (class, id, src, title, style, href, target, type_, value, height, width)
@@ -233,8 +232,8 @@ view model =
             ++ "&url=" ++ Http.encodeUri link
             ++ "&related=" ++ "steinuil"
       in
-        div [ class "link" ]
-          [ a [ href tweet, target "_blank" ] [ text "Tweet" ] ]
+        a [ href tweet, target "_blank", class "link" ]
+          [ div [] [ text "Tweet" ] ]
 
 
     searchBar =
@@ -247,7 +246,7 @@ view model =
     navBar =
       let
         link name endpoint =
-          div [ class "link", onClick <| Query <| endpoint ] [ text name ]
+          a [ class "link", onClick <| Query <| endpoint ] [ text name ]
 
         (related, userIllust, shareButton) =
           case Tuple.first model.page of
