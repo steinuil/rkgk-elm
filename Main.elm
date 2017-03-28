@@ -9,6 +9,7 @@ import Html.Attributes exposing (class, id, src, title, style, href, target, typ
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Markdown
+import Navigation
 
 
 main =
@@ -40,6 +41,7 @@ type Msg =
   | Input String
   | Search String
   | Submit
+  | Dismiss
 
 
 init : (Model, Cmd Msg)
@@ -102,9 +104,15 @@ update msg model =
           (EmptyPage, _) -> model.history
           p -> p :: model.history
 
+        url = case Tuple.second page of
+          BasePage name -> "/base"
+          SearchPage query -> "/search/" ++ (Http.encodeUri query)
+          UserPage name user -> "/user/" ++ name ++ "/" ++ (toString user.id)
+          IllustPage name illust -> "/illust/" ++ name ++ "/" ++ (toString illust.id)
+
         new = { model | page = page, history = history, loading = False }
       in
-        new ! []
+        new ! [ Navigation.newUrl url ]
 
     MoreResp (Ok page) ->
       let
@@ -135,9 +143,11 @@ update msg model =
       let
         page = (IllustDetail illust, IllustPage "Detail" illust)
 
+        url = "/illust/detail/" ++ (toString illust.id)
+
         new = { model | page = page, history = model.page :: model.history }
       in
-        new ! []
+        new ! [ Navigation.newUrl url ]
 
     Back ->
       let
@@ -150,7 +160,7 @@ update msg model =
 
         new = { model | page = page, history = history }
       in
-        new ! []
+        new ! [ Navigation.back 1 ]
 
     Input str ->
       let
@@ -184,6 +194,10 @@ update msg model =
           Just _ -> { model | loading = True }
       in
         new ! [ cmd ]
+
+    Dismiss ->
+      let new = { model | error = Nothing } in
+        new ! []
 
 
 
@@ -287,7 +301,7 @@ view model =
 
     error = case model.error of
       Just msg ->
-        div [ id "error", class "link" ] [ text msg ]
+        div [ id "error", class "link", onClick Dismiss ] [ text msg ]
       Nothing ->
         empty
 
@@ -381,11 +395,11 @@ view model =
   in
     main_ []
       [ back
-      , pageInfo
       , navBar
       , page
       , more
       , info
+      , pageInfo
       , loading
       , error -- so that the z-index is the highest
       ]
