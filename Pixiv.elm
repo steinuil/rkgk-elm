@@ -35,7 +35,7 @@ send response request =
     url =
       Dict.foldr (\k v -> (::) (k ++ "=" ++ v)) [] request.params
         |> String.join "&"
-        |> (++) ("http://localhost:9292/" ++ "https://app-api.pixiv.net/" ++ request.url ++ "?")
+        |> (++) ("/" ++ "https://app-api.pixiv.net/" ++ request.url ++ "?")
 
     (method, auth) = case request.method of
       GetNoAuth -> ("GET", Nothing)
@@ -63,7 +63,7 @@ more : Response Page msg -> Maybe String -> Url -> Cmd msg
 more response auth url =
   Http.send response
     <| httpRequest
-      { url = "http://localhost:9292/" ++ url
+      { url = "/" ++ url
       , method = "GET"
       , token = auth
       , expect = Decoders.request
@@ -115,7 +115,7 @@ authRequest response data =
     <| httpRequest
       { method = "POST"
       , token = Nothing
-      , url = "http://localhost:9292/" ++ "https://oauth.secure.pixiv.net/auth/token"
+      , url = "/" ++ "https://oauth.secure.pixiv.net/auth/token"
       , body = Just <| Http.multipartBody <|
         [ Http.stringPart "get_secure_url" "1"
         , Http.stringPart "client_id" "bYGKuGVw91e0NMfPGp44euvGt59s"

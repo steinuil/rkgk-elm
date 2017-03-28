@@ -192,7 +192,7 @@ view : Model -> Html Msg
 view model =
   let
     proxy : String -> Url
-    proxy = (++) "http://localhost:9292/"
+    proxy = (++) "/"
 
 
     empty = text ""
@@ -200,7 +200,7 @@ view model =
 
     thumb illust =
       let count = span [ class "count" ] [ text <| toString illust.count ] in
-        a [ class "thumbnail link", onClick <| Detail illust ]
+        a [ class "thumbnail link illust", onClick <| Detail illust ]
           [ img [ src <| proxy illust.thumbnail ] []
           , if illust.count > 1 then count else empty
           ]
@@ -221,7 +221,7 @@ view model =
               Just (w, h) -> [ width w, height h ]
               Nothing -> [])
       in
-        div [ class "picture" ] [ img attr [] ]
+        div [ class "picture illust" ] [ img attr [] ]
 
     --
 
@@ -307,29 +307,31 @@ view model =
         empty
 
 
-    pageInfo = case model.page of
-      (EmptyPage, _) ->
-        empty
+    pageInfo =
+      let
+        name_ t = span [ class "name" ] [ text t ]
+      in
+        case model.page of
+          (EmptyPage, _) ->
+            empty
 
-      (_, BasePage name) ->
-        div [ id "page-info", class "base" ]
-          [ span [ class "name" ] [ text name ] ]
+          (_, BasePage name) ->
+            div [ id "page-info", class "base" ] [ name_ name ]
 
-      (_, SearchPage query) ->
-        div [ id "page-info", class "base" ]
-          [ span [ class "name" ] [ text <| "Search: " ++ query ] ]
+          (_, SearchPage query) ->
+            div [ id "page-info", class "base" ] [ name_ <| "Search: " ++ query ]
 
-      (_, UserPage name user) ->
-        div [ id "page-info", class "artist" ]
-          [ img [ class "avatar", src <| proxy user.avatar ] []
-          , text name
-          , a [ class "name link", title user.nick ]
-            [ text user.name ]
-          ]
+          (_, UserPage name user) ->
+            div [ id "page-info", class "artist" ]
+              [ img [ class "thumb", src <| proxy user.avatar ] []
+              , div [ class "cont" ] [ name_ name , name_ user.name ]
+              ]
 
-      (_, IllustPage name illust) ->
-        div [ id "page-info", class "illust" ]
-          [ span [ class "name" ] [ text name ] ]
+          (_, IllustPage name illust) ->
+            div [ id "page-info", class "illust" ]
+              [ img [ class "thumb", src <| proxy illust.thumbnail ] []
+              , name_ name
+              ]
 
 
     back = case model.history of
@@ -374,7 +376,7 @@ view model =
     loading = case model.loading of
       True ->
         let box = div [ class "box" ] [] in
-          div [ id "loading" ] [ box, box, box, box, box, box ]
+          div [ id "loading" ] <| List.repeat 6 box
       False -> empty
   in
     main_ []

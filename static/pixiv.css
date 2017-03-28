@@ -47,20 +47,23 @@ p a {
   top: 0;
   right: 0;
   margin: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
 }
 
 @keyframes loading-dot {
-  0% { transform: scaleY(1) }
-  60% { transform: scaleY(.5); }
-  90% { transform: scaleY(1) }
+  60% { height: 50px; }
+  90% { height: 10px; }
 }
 
 #loading .box {
   display: inline-block;
   clear: both;
-  background-color: black;
+  background-color: whitesmoke;
   opacity: .6;
-  height: 50px;
+  height: 10px;
   margin: 1px;
   width: 10px;
   animation: loading-dot 1s infinite ease-in-out;
@@ -101,15 +104,6 @@ p a {
   opacity: .6;
 }
 
-#page-info {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 5;
-  opacity: .6;
-  margin: 24px;
-}
-
 nav {
   display: flex;
   justify-content: center;
@@ -143,24 +137,47 @@ nav .link {
   cursor: pointer;
 }
 
+#page-info {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  opacity: .6;
+  margin: 24px;
+}
+
 #page-info .name {
   padding: 6px 10px;
   background-color: black;
   color: white;
+  display: inline-block;
 }
 
-#page-info.artist {
+#page-info .cont {
   display: flex;
-  align-items: center;
+  flex-flow: column;
+  justify-content: flex-end;
+  align-items: left;
+  height: 70px;
 }
 
-#page-info.artist .avatar {
+#page-info {
+  display: flex;
+  align-items: inherit;
+  align-items: flex-end;
+}
+
+#page-info .thumb {
   max-width: 70px;
   max-height: 70px;
 }
 
-#page-info.artist .name {
-  margin: auto 6px 0;
+#page-info .name {
+  margin: 0 6px;
+}
+
+#page-info .name:not(:first-child) {
+  margin-top: 6px;
 }
 
 #list {
@@ -235,7 +252,7 @@ nav .link {
 }
 
 #detail .picture img {
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 110px);
   max-width: calc(100vw - 50px);
   width: auto;
   height: auto;
