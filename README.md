@@ -1,5 +1,6 @@
-# rkgk
-A thing for pixiv. It'll be better later. Maybe.
+![rkgk](static/logo.png)
+
+A better Pixiv browser.
 
 ## Requirements
 - Elm 0.18
