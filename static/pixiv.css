@@ -6,7 +6,7 @@
 
 body {
   background-color: lightslategray;
-  
+
   font-family: sans-serif;
   font-size: 16px;
 }
@@ -190,9 +190,8 @@ nav .link {
   display: inline-block;
   height: 360px;
   width: 360px;
-
-  background-color: white;
   position: relative;
+  background: white url("/logo.png") center no-repeat;
 }
 
 #list .thumbnail img {
@@ -232,9 +231,9 @@ nav .link {
   position: absolute;
   bottom: 0;
   right: 0;
-  
+
   margin: 6px;
-  
+
   background-color: white;
   color: black;
   opacity: .5;
@@ -256,6 +255,11 @@ nav .link {
   width: auto;
   height: auto;
   margin: 6px auto;
+
+  min-width: 100px;
+  min-height: 100px;
+
+  background: url("/logo.png") center no-repeat;
 }
 
 #detail-info {

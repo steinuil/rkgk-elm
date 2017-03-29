@@ -4,6 +4,7 @@ use Rack::Static, root: 'static', urls: {
   '/' => 'pixiv.html',
   '/pixiv.js' => 'pixiv.js',
   '/pixiv.css' => 'pixiv.css',
+  '/logo.png' => 'logo.png',
 }
 
 app = lambda do |env|
