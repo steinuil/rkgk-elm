@@ -187,7 +187,7 @@ nav .link {
 
 #list > .thumbnail {
   margin: 3px;
-  display: inline-block;
+  display: inline-flex;
   height: 360px;
   width: 360px;
   position: relative;

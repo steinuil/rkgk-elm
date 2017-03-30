@@ -36,41 +36,37 @@ type Msg =
   | Response (Result Http.Error (Page, PageInfo))
   | More
   | MoreResp (Result Http.Error Page)
+  | LoginResp (Result Http.Error LoginInfo)
   | Detail Illust
   | Back
   | Input String
   | Search String
   | Submit
-  | Dismiss
+  | DismissErr
 
 
 init : (Model, Cmd Msg)
 init =
   let
-    tokens = Nothing
-    {-
-    tokens = case (flags.accessToken, flags.refreshToken) of
-      (Just a, Just t) -> Just (Tokens a t)
-      _ -> Nothing
-    -}
-
     model =
       { page = (EmptyPage, BasePage "")
       , history = []
       , error = Nothing
-      , tokens = tokens
+      , tokens = Nothing
       , loading = True
       , query = Nothing
       }
 
-    startPage = case tokens of
+    startPage = case Nothing of
       Nothing -> Endpoints.ranking
       Just toks -> Endpoints.myFeed toks.access
 
     cmd = startPage
       |> Pixiv.send Response
+
+    login = Pixiv.login LoginResp "USERNAME" "PASSWORD"
   in
-    model ! [ cmd ]
+    model ! [ login, cmd ]
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -131,6 +127,11 @@ update msg model =
       in
         new ! []
 
+    LoginResp (Ok info) ->
+      let new = { model | tokens = Just <| Tokens info.access info.refresh } in
+        new ! []
+
+
     Response (Err message) ->
       let new = { model | error = Just <| toString message, loading = False } in
         new ! []
@@ -138,6 +139,19 @@ update msg model =
     MoreResp (Err message) ->
       let new = { model | error = Just <| toString message, loading = False } in
         new ! []
+
+    LoginResp (Err message) ->
+      let new = { model | error = Just <| toString message } in
+        new ! []
+      {-
+        error =
+          case message of
+            Http.BadStatus msg ->
+              case Json.Decode.decodeString Pixiv.Decoders.error msg.body of
+                Ok m -> m
+                Err _ -> toString msg
+            _ -> toString message
+      -}
 
     Detail illust ->
       let
@@ -195,7 +209,7 @@ update msg model =
       in
         new ! [ cmd ]
 
-    Dismiss ->
+    DismissErr ->
       let new = { model | error = Nothing } in
         new ! []
 
@@ -284,12 +298,18 @@ view model =
           Just {access, refresh} ->
             Endpoints.myRecommended access
 
+        feed = case model.tokens of
+          Nothing -> empty
+          Just {access, refresh} ->
+            link "Feed" <| Endpoints.myFeed access
+
         popular = case Tuple.second model.page of
           SearchPage query -> link "Most Popular" <| Endpoints.popularPreview query
           _ -> empty
       in
         nav []
           [ searchBar
+          , feed
           , link "Ranking" Endpoints.ranking
           , link "Recommended" recs
           , popular
@@ -301,7 +321,7 @@ view model =
 
     error = case model.error of
       Just msg ->
-        div [ id "error", class "link", onClick Dismiss ] [ text msg ]
+        div [ id "error", class "link", onClick DismissErr ] [ text msg ]
       Nothing ->
         empty
 
@@ -371,9 +391,7 @@ view model =
         case next of
           Just _ ->
             div [ id "more" ]
-              [ div [ class "cont", link ]
-                [ text "Load more" ]
-              ]
+              [ a [ class "cont", link ] [ text "Load more" ] ]
           Nothing -> empty
 
 

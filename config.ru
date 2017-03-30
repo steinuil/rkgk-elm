@@ -33,6 +33,12 @@ app = lambda do |env|
 
     req_url = path[1..-1] + '?' + env['QUERY_STRING']
 
+    orig_headers = env.select do |h, v|
+      h.start_with? 'HTTP_'
+    end.map do |h, v|
+      [ h.sub(/^HTTP_/, ''), v ]
+    end
+
     req_headers = {
       'Referer' => 'https://pixiv.net',
       'App-OS' => 'ios',
@@ -54,7 +60,7 @@ app = lambda do |env|
         if method == 'GET'
           RestClient.get req_url, req_headers
         else
-          RestClient.post req_url, req_headers, req_body
+          RestClient.post req_url, req_body, req_headers
         end
       rescue RestClient::ExceptionWithResponse => e
         e.response

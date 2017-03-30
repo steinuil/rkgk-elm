@@ -90,7 +90,7 @@ login =
       ("refresh_token" := string)
       (field "user"
         (map4 LoggedUser
-          ("id" := int)
+          (map (String.toInt >> Result.withDefault 0) ("id" := string))
           ("name" := string)
           ("account" := string)
           (at [ "profile_image_urls", "px_170x170" ] string))))
@@ -100,7 +100,7 @@ login =
 {-| Decodes the error message. -}
 error : Decoder String
 error =
-  field "error" ("user_message" := string)
+  field "errors" (field "system" ("message" := string))
 
 
 -------------------------------------------------------------------------------

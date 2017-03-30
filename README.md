@@ -9,6 +9,7 @@ A better Pixiv browser.
 
 ## Installing
 ```
+sed -i .bak -e "s/USERNAME/your pixiv username/" -e "s/PASSWORD/your pixiv password" Main.elm
 make
 bundle install
 rackup
