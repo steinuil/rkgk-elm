@@ -3,6 +3,7 @@ module Pixiv.Endpoints exposing
   , popularPreview
   , illust, user, ugoiraData
   , myFeed, myRecommended, myBookmarkTags, illustBookmarkDetail
+  , bookmark, unbookmark, follow, unfollow
   )
 
 {-| Endpoints
@@ -16,6 +17,7 @@ module Pixiv.Endpoints exposing
 
 # Authenticated
 @docs myFeed, myRecommended, myBookmarkTags, illustBookmarkDetail
+@docs bookmark, unbookmark, follow, unfollow
 -}
 
 import Pixiv.Types exposing (..)
@@ -269,42 +271,51 @@ illustBookmarkDetail token illust =
 
 -------------------------------------------------------------------------------
 
-{-
-addBookmark : accesstoken -> illustid -> request
-addBookmark token id =
+{-| Stuff -}
+bookmark : AccessToken -> Illust -> Request
+bookmark token illust =
   { method = Post token
-  , url = "v1/illust/bookmark/add"
-  , return = FIXME
+  , url = "v2/illust/bookmark/add"
+  , return = ActionResult
   , allowed = [ "tags", "restrict" ]
-  , params = Dict.fromlist [ Params.illustid id ]
+  , params = Dict.fromList
+    [ Params.illustId illust.id
+    , Params.restrict Public
+    ]
   }
 
 
-deleteBookmark : accesstoken -> illustid -> request
-deleteBookmark token id =
+{-| Stuff -}
+unbookmark : AccessToken -> Illust -> Request
+unbookmark token illust =
   { method = Post token
-  , url = "v1/illust/bookmark/add"
-  , return = FIXME
+  , url = "v1/illust/bookmark/delete"
+  , return = ActionResult
   , allowed = []
-  , params = Dict.fromlist [ Params.illustid id ]
+  , params = Dict.fromList
+    [ Params.illustId illust.id
+    , Params.restrict Public
+    ]
   }
 
+
+{-| Stuff -}
 follow : AccessToken -> User -> Request
 follow token user =
   { method = Post token
   , url = "v1/user/follow/add"
-  , return = FIXME
+  , return = ActionResult
   , allowed = []
-  , params = Dict.fromList [ "user_id" => user ]
+  , params = Dict.fromList [ Params.userId user.id ]
   }
 
 
+{-| Stuff -}
 unfollow : AccessToken -> User -> Request
 unfollow token user =
   { method = Post token
   , url = "v1/user/follow/delete"
-  , return = FIXME
+  , return = ActionResult
   , allowed = []
-  , params = Dict.fromList [ "user_id" => user ]
+  , params = Dict.fromList [ Params.userId user.id ]
   }
--}

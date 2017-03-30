@@ -101,14 +101,20 @@ update msg model =
           p -> p :: model.history
 
         url = case Tuple.second page of
-          BasePage name -> "/base"
-          SearchPage query -> "/search/" ++ (Http.encodeUri query)
-          UserPage name user -> "/user/" ++ name ++ "/" ++ (toString user.id)
-          IllustPage name illust -> "/illust/" ++ name ++ "/" ++ (toString illust.id)
+          BasePage name ->
+            Navigation.newUrl <| "/base"
+          SearchPage query ->
+            Navigation.newUrl <| "/search/" ++ (Http.encodeUri query)
+          UserPage name user ->
+            Navigation.newUrl <| "/user/" ++ name ++ "/" ++ (toString user.id)
+          IllustPage name illust ->
+            Navigation.newUrl <| "/illust/" ++ name ++ "/" ++ (toString illust.id)
+          ActionResult ->
+            Cmd.none
 
         new = { model | page = page, history = history, loading = False }
       in
-        new ! [ Navigation.newUrl url ]
+        new ! [ url ]
 
     MoreResp (Ok page) ->
       let
@@ -306,6 +312,17 @@ view model =
         popular = case Tuple.second model.page of
           SearchPage query -> link "Most Popular" <| Endpoints.popularPreview query
           _ -> empty
+
+        bookmark =
+          case Tuple.first model.page of
+            IllustDetail illust ->
+              case model.tokens of
+                Nothing -> empty
+                Just {access, refresh} ->
+                  if illust.bookmarked
+                  then link "Unbookmark" <| Endpoints.unbookmark access illust
+                  else link "Bookmark" <| Endpoints.bookmark access illust
+            _ -> empty
       in
         nav []
           [ searchBar
@@ -315,6 +332,7 @@ view model =
           , popular
           , related
           , userIllust
+          , bookmark
           , shareButton
           ]
 
@@ -346,8 +364,8 @@ view model =
         name_ t = span [ class "name" ] [ text t ]
       in
         case model.page of
-          (EmptyPage, _) ->
-            empty
+          (EmptyPage, _) -> empty
+          (_, ActionResult) -> empty
 
           (_, BasePage name) ->
             div [ id "page-info", class "base" ] [ name_ name ]

@@ -171,6 +171,7 @@ type PageInfo =
   | SearchPage String
   | UserPage String User
   | IllustPage String Illust
+  | ActionResult
 
 
 {-| Info about the login session and user. -}
