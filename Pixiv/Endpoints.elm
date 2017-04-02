@@ -293,9 +293,7 @@ unbookmark token illust =
   , return = ActionResult
   , allowed = []
   , params = Dict.fromList
-    [ Params.illustId illust.id
-    , Params.restrict Public
-    ]
+    [ Params.illustId illust.id ]
   }
 
 
@@ -306,7 +304,10 @@ follow token user =
   , url = "v1/user/follow/add"
   , return = ActionResult
   , allowed = []
-  , params = Dict.fromList [ Params.userId user.id ]
+  , params = Dict.fromList
+    [ Params.userId user.id
+    , Params.restrict Public
+    ]
   }
 
 

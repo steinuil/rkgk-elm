@@ -4,16 +4,19 @@ import Pixiv.Endpoints as Endpoints
 
 import Infix exposing (..)
 
+import LocalStorage
+
 import Html exposing (Html, main_, a, img, text, div, span, nav, form, input)
 import Html.Attributes exposing (class, id, src, title, style, href, target, type_, value, height, width)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Markdown
 import Navigation
+import Task
 
 
 main =
-  Html.program
+  Html.programWithFlags
     { init = init
     , view = view
     , update = update
@@ -43,10 +46,11 @@ type Msg =
   | Search String
   | Submit
   | DismissErr
+  | Inserted (Result LocalStorage.Error ())
 
 
-init : (Model, Cmd Msg)
-init =
+init : Maybe String -> (Model, Cmd Msg)
+init token =
   let
     model =
       { page = (EmptyPage, BasePage "")
@@ -64,7 +68,10 @@ init =
     cmd = startPage
       |> Pixiv.send Response
 
-    login = Pixiv.login LoginResp "USERNAME" "PASSWORD"
+    login =
+      case token of
+        Just tok -> Pixiv.refresh LoginResp tok
+        Nothing -> Pixiv.login LoginResp "USERNAME" "PASSWORD"
   in
     model ! [ login, cmd ]
 
@@ -94,6 +101,8 @@ update msg model =
       in
         new ! [ cmd ]
 
+
+    -- Successful requests
     Response (Ok page) ->
       let
         history = case model.page of
@@ -134,10 +143,19 @@ update msg model =
         new ! []
 
     LoginResp (Ok info) ->
-      let new = { model | tokens = Just <| Tokens info.access info.refresh } in
+      let
+        new = { model | tokens = Just <| Tokens info.access info.refresh }
+
+        cmd = LocalStorage.set "rkgk_refreshToken" info.refresh
+          |> Task.attempt Inserted
+      in
         new ! []
 
+    Inserted (Ok _) ->
+      model ! []
 
+
+    -- Failed requests
     Response (Err message) ->
       let new = { model | error = Just <| toString message, loading = False } in
         new ! []
@@ -147,6 +165,10 @@ update msg model =
         new ! []
 
     LoginResp (Err message) ->
+      let new = { model | error = Just <| toString message } in
+        new ! []
+
+    Inserted (Err message) ->
       let new = { model | error = Just <| toString message } in
         new ! []
       {-
@@ -188,8 +210,7 @@ update msg model =
           "" -> Nothing
           _ -> Just str
 
-        new =
-          { model | query = query }
+        new = { model | query = query }
       in
         new ! []
 
@@ -202,18 +223,12 @@ update msg model =
         new ! [ cmd ]
 
     Submit ->
-      let
-        cmd = case model.query of
-          Nothing -> Cmd.none
-          Just str ->
-            Endpoints.search str
-              |> Pixiv.send Response
-
-        new = case model.query of
-          Nothing -> model
-          Just _ -> { model | loading = True }
-      in
-        new ! [ cmd ]
+      case model.query of
+        Nothing ->
+          model ! []
+        Just str ->
+          let cmd = Endpoints.search str |> Pixiv.send Response in
+            { model | loading = True } ! [ cmd ]
 
     DismissErr ->
       let new = { model | error = Nothing } in
@@ -323,6 +338,15 @@ view model =
                   then link "Unbookmark" <| Endpoints.unbookmark access illust
                   else link "Bookmark" <| Endpoints.bookmark access illust
             _ -> empty
+
+        follow =
+          case Tuple.second model.page of
+            UserPage _ user ->
+              case model.tokens of
+                Nothing -> empty
+                Just {access, refresh} ->
+                  link "Follow" <| Endpoints.follow access user
+            _ -> empty
       in
         nav []
           [ searchBar
@@ -333,6 +357,7 @@ view model =
           , related
           , userIllust
           , bookmark
+          , follow
           , shareButton
           ]
 

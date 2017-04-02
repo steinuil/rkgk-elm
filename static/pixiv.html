@@ -9,7 +9,8 @@
 </head>
 <body>
   <script>
-Elm.Main.fullscreen();
+var refreshToken = localStorage.getItem('rkgk_refreshToken');
+Elm.Main.fullscreen(refreshToken);
   </script>
 </body>
 </html>

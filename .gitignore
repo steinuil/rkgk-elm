@@ -1,5 +1,6 @@
 elm-stuff
 *.js
+!Native/*.js
 Gemfile.lock
 .bundle
 documentation.json
