@@ -117,8 +117,8 @@ authRequest response data =
       , token = Nothing
       , url = "/" ++ "https://oauth.secure.pixiv.net/auth/token"
       , body = Just <| Http.multipartBody <|
-        --[ Http.stringPart "get_secure_url" "1"
-        [ Http.stringPart "client_id" "bYGKuGVw91e0NMfPGp44euvGt59s"
+        [ Http.stringPart "get_secure_url" "true"
+        , Http.stringPart "client_id" "bYGKuGVw91e0NMfPGp44euvGt59s"
         , Http.stringPart "client_secret" "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK"
         ] ++ data
       , expect = Decoders.login

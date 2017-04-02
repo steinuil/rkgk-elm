@@ -149,7 +149,7 @@ update msg model =
         cmd = LocalStorage.set "rkgk_refreshToken" info.refresh
           |> Task.attempt Inserted
       in
-        new ! []
+        new ! [ cmd ]
 
     Inserted (Ok _) ->
       model ! []
