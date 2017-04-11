@@ -64,6 +64,8 @@ app = lambda do |env|
         end
       rescue RestClient::ExceptionWithResponse => e
         e.response
+      rescue RestClient::ServerBrokeConnection, OpenSSL::SSL::SSLError, Errno::ECONNRESET
+        retry
       end
 
     content_type = response.headers[:content_type]

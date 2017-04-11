@@ -42,7 +42,8 @@ Stuff to infer: following and unfollowing users.
 {-| Search for a tag, or keyword. -}
 search : String -> Request
 search word =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/search/illust"
   , return = SearchPage word
   , allowed = [ "search_target", "duration", "sort", "offset" ]
@@ -57,7 +58,8 @@ search word =
 {-| List of popular illustrations. -}
 ranking : Request
 ranking =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/illust/ranking"
   , return = BasePage "Ranking"
   , allowed = [ "date", "offset" ]
@@ -68,7 +70,8 @@ ranking =
 {-| Recommended illustrations. Can be based on a list of bookmarks provided. -}
 recommended : Request
 recommended =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/illust/recommended-nologin"
   , return = BasePage "Recommended"
   , allowed = [ "content_type", "bookmark_illust_ids", "offset" ]
@@ -79,7 +82,8 @@ recommended =
 {-| An user's illustrations. -}
 userIllusts : User -> Request
 userIllusts user =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/user/illusts"
   , return = UserPage "Illustrations" user
   , allowed = [ "type", "offset" ]
@@ -93,7 +97,8 @@ userIllusts user =
 {-| An user's bookmarks. -}
 userBookmarks : User -> Request
 userBookmarks user =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/user/bookmarks/illust"
   , return = UserPage "Bookmarks" user
   , allowed = [ "max_bookmark_id", "tag" ]
@@ -107,7 +112,8 @@ userBookmarks user =
 {-| Random illustrations related to the selected one. -}
 related : Illust -> Request
 related illust =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v2/illust/related"
   , return = IllustPage "Related" illust
   , allowed = [ "seed_illust_id" ]
@@ -118,7 +124,8 @@ related illust =
 {-| List of the trending tags with an Illust for each. -}
 trendingTags : Request
 trendingTags =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/trending-tags/illust"
   , return = BasePage "Trending Tags"
   , allowed = []
@@ -129,7 +136,8 @@ trendingTags =
 {-| List of the users followed by the given user with a few preview illusts. -}
 following : User -> Request
 following user =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/user/following"
   , return = UserPage "Following" user
   , allowed = [ "offset" ]
@@ -140,7 +148,8 @@ following user =
 {-| Same as above, for the followers of the given user. -}
 followers : User -> Request
 followers user =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/user/follower"
   , return = UserPage "Followers" user
   , allowed = [ "offset" ]
@@ -151,7 +160,8 @@ followers user =
 {-| An illustration's comments. -}
 comments : Illust -> Request
 comments illust =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/illust/comments"
   , return = IllustPage "Comments" illust
   , allowed = [ "include_total_comments", "offset" ]
@@ -162,7 +172,8 @@ comments illust =
 {-| A preview of a few popular works for that query string. -}
 popularPreview : String -> Request
 popularPreview query =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/search/popular-preview/illust"
   , return = BasePage ("Popular: " ++ query)
   , allowed = [ "search_target", "duration", "sort", "offset" ]
@@ -183,7 +194,8 @@ Useful when taking input from an URL.
 -}
 illust : IllustId -> Request
 illust id =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/illust/detail"
   , return = BasePage "Illust"
   , allowed = []
@@ -194,7 +206,8 @@ illust id =
 {-| Additional information about a user. -}
 user : UserId -> Request
 user id =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/user/detail"
   , return = BasePage "User"
   , allowed = []
@@ -209,7 +222,8 @@ with the duration for each of them. Like fuck I'm supporting Ugoira.
 -}
 ugoiraData : Illust -> Request
 ugoiraData illust =
-  { method = GetNoAuth
+  { method = GET
+  , auth = Nothing
   , url = "v1/ugoira/metadata"
   , return = IllustPage "Ugoira" illust
   , allowed = []
@@ -222,7 +236,8 @@ ugoiraData illust =
 {-| New works from the users you follow. -}
 myFeed : AccessToken -> Request
 myFeed token =
-  { method = Get token
+  { method = GET
+  , auth = Just token
   , url = "v2/illust/follow"
   , return = BasePage "New Works - Following"
   , allowed = [ "restrict", "offset" ]
@@ -234,7 +249,8 @@ myFeed token =
 {-| Recommended illustrations based on your bookmarks. -}
 myRecommended : AccessToken -> Request
 myRecommended token =
-  { method = Get token
+  { method = GET
+  , auth = Just token
   , url = "v1/illust/recommended"
   , return = BasePage "Recommended"
   , allowed =
@@ -249,7 +265,8 @@ myRecommended token =
 {-| Tags you've used to sort your bookmarks -}
 myBookmarkTags : AccessToken -> Request
 myBookmarkTags token =
-  { method = Get token
+  { method = GET
+  , auth = Just token
   , url = "v1/user/bookmark-tags/illust"
   , return = BasePage "Bookmark Tags"
   , allowed = [ "restrict", "offset" ]
@@ -261,7 +278,8 @@ myBookmarkTags token =
 {-| No idea -}
 illustBookmarkDetail : AccessToken -> Illust -> Request
 illustBookmarkDetail token illust =
-  { method = Get token
+  { method = GET
+  , auth = Just token
   , url = "v2/illust/bookmark/detail"
   , return = IllustPage "Bookmark Detail" illust
   , allowed = []
@@ -274,7 +292,8 @@ illustBookmarkDetail token illust =
 {-| Stuff -}
 bookmark : AccessToken -> Illust -> Request
 bookmark token illust =
-  { method = Post token
+  { method = POST
+  , auth = Just token
   , url = "v2/illust/bookmark/add"
   , return = ActionResult
   , allowed = [ "tags", "restrict" ]
@@ -288,7 +307,8 @@ bookmark token illust =
 {-| Stuff -}
 unbookmark : AccessToken -> Illust -> Request
 unbookmark token illust =
-  { method = Post token
+  { method = POST
+  , auth = Just token
   , url = "v1/illust/bookmark/delete"
   , return = ActionResult
   , allowed = []
@@ -300,7 +320,8 @@ unbookmark token illust =
 {-| Stuff -}
 follow : AccessToken -> User -> Request
 follow token user =
-  { method = Post token
+  { method = POST
+  , auth = Just token
   , url = "v1/user/follow/add"
   , return = ActionResult
   , allowed = []
@@ -314,7 +335,8 @@ follow token user =
 {-| Stuff -}
 unfollow : AccessToken -> User -> Request
 unfollow token user =
-  { method = Post token
+  { method = POST
+  , auth = Just token
   , url = "v1/user/follow/delete"
   , return = ActionResult
   , allowed = []

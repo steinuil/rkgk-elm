@@ -146,6 +146,7 @@ return.
 -}
 type alias Request =
   { method : Method
+  , auth : Maybe String
   , url : Url
   , return : PageInfo
   , allowed : List String
@@ -195,4 +196,4 @@ type alias Tokens =
 
 
 {-| Types of API requests, Get and Post require the access token. -}
-type Method = GetNoAuth | Get String | Post String
+type Method = GET | POST

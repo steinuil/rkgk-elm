@@ -1,10 +1,10 @@
-module Pixiv exposing (Response, send, more, withOptions, login, refresh)
+module Pixiv exposing (Response, send, more, withOptions, withAuth, login, refresh)
 
 {-| Requests
 
 @docs Response
 
-@docs send, more, withOptions
+@docs send, more, withOptions, withAuth
 
 @docs login, refresh
 -}
@@ -37,10 +37,16 @@ send response request =
         |> String.join "&"
         |> (++) ("/" ++ "https://app-api.pixiv.net/" ++ request.url ++ "?")
 
+    method = case request.method of
+      GET  -> "GET"
+      POST -> "POST"
+
+    {-
     (method, auth) = case request.method of
       GetNoAuth -> ("GET", Nothing)
       Get x ->     ("GET", Just x)
       Post x ->    ("POST", Just x)
+    -}
 
     decoder =
       Decode.map2 (,) Decoders.request (Decode.succeed request.return)
@@ -49,7 +55,7 @@ send response request =
       <| httpRequest
         { url = url
         , method = method
-        , token = auth
+        , token = request.auth
         , expect = decoder
         , body = Nothing
         }
@@ -88,6 +94,12 @@ withOptions new request =
     newParams = Dict.foldr insertIfAllowed request.params (Dict.fromList new)
   in
     { request | params = newParams }
+
+
+{-| Add auth to a request that doesn't have any -}
+withAuth : String -> Request -> Request
+withAuth tok req =
+  { req | auth = Just tok }
 
 
 {-| Logs in and returns a LoginInfo, containing the tokens and basic user info.

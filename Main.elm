@@ -80,8 +80,15 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Query req ->
-      let new = { model | loading = True } in
-        new ! [ req |> Pixiv.send Response ]
+      let
+        new = { model | loading = True }
+
+        req_ = case model.tokens of
+          Nothing -> req
+          Just { access, refresh } ->
+            req |> Pixiv.withAuth access
+      in
+        new ! [ req_ |> Pixiv.send Response ]
 
     More ->
       let
@@ -280,7 +287,7 @@ view model =
           ++ (toString illust.id)
 
         t =
-          illust.title ++ " | " ++ illust.user.name
+          illust.title ++ " | " ++ illust.user.name ++ " #pixiv"
 
         tweet =
           "https://twitter.com/intent/tweet?"
