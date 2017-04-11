@@ -95,9 +95,9 @@ withOptions new request =
 login : Response LoginInfo msg -> String -> String -> Cmd msg
 login response name password =
   authRequest response
-    [ Http.stringPart "grant_type" "password"
-    , Http.stringPart "username" name
-    , Http.stringPart "password" password
+    [ "grant_type" => "password"
+    , "username" => name
+    , "password" => password
     ]
 
 
@@ -105,24 +105,32 @@ login response name password =
 refresh : Response LoginInfo msg -> String -> Cmd msg
 refresh response refreshToken =
   authRequest response
-    [ Http.stringPart "grant_type" "refresh_token"
-    , Http.stringPart "refresh_token" refreshToken
+    [ "grant_type" => "refresh_token"
+    , "refresh_token" => refreshToken
     ]
 
 
 authRequest response data =
-  Http.send response
-    <| httpRequest
-      { method = "POST"
-      , token = Nothing
-      , url = "/" ++ "https://oauth.secure.pixiv.net/auth/token"
-      , body = Just <| Http.multipartBody <|
-        [ Http.stringPart "get_secure_url" "true"
-        , Http.stringPart "client_id" "bYGKuGVw91e0NMfPGp44euvGt59s"
-        , Http.stringPart "client_secret" "HP3RmkgAmEGro0gn1x9ioawQE8WMfvLXDz3ZqxpK"
-        ] ++ data
-      , expect = Decoders.login
-      }
+  let
+    param (k, v) = Http.encodeUri k ++ "=" ++ Http.encodeUri v
+
+    formBody =
+      List.map param
+        >> String.join "&"
+        >> Http.stringBody "application/x-www-form-urlencoded"
+  in
+    Http.send response
+      <| httpRequest
+        { method = "POST"
+        , token = Nothing
+        , url = "/" ++ "https://oauth.secure.pixiv.net/auth/token"
+        , body = Just <| formBody <|
+          [ "get_secure_url" => "true"
+          , "client_id" => "MOBrBDS8blbauoSck0ZfDbtuzpyT"
+          , "client_secret" => "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj"
+          ] ++ data
+        , expect = Decoders.login
+        }
 
 
 httpRequest : { url : String, method : String, token : Maybe String, expect : Decode.Decoder a, body : Maybe Http.Body } -> Http.Request a
@@ -133,10 +141,10 @@ httpRequest { url, method, token, expect, body } =
       Nothing -> []
 
     headers =
-      [ Http.header "App-OS" "ios"
-      , Http.header "App-OS-Version" "10.2.1"
-      , Http.header "App-Version" "6.4.0"
-      , Http.header "User-Agent" "PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)"
+      [ Http.header "App-OS" "android"
+      , Http.header "App-OS-Version" "6.0.1"
+      , Http.header "App-Version" "5.0.56"
+      , Http.header "User-Agent" "PixivAndroidApp/5.0.56 (Android 6.0.1; SM-G850F)"
       ] ++ auth
   in
     Http.request

@@ -41,10 +41,10 @@ app = lambda do |env|
 
     req_headers = {
       'Referer' => 'https://pixiv.net',
-      'App-OS' => 'ios',
-      'App-OS-Version' => '10.2.1',
-      'App-Version' => '6.4.0',
-      'User-Agent' => 'PixivIOSApp/6.0.9 (iOS 10.2.1; iPhone8,1)'
+      'App-OS' => 'android',
+      'App-OS-Version' => '6.0.1',
+      'App-Version' => '5.0.56',
+      'User-Agent' => 'PixivAndroidApp/5.0.56 (Android 6.0.1; SM-G850F)'
     }
 
     if auth = env['HTTP_AUTHORIZATION']
